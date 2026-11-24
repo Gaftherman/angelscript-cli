@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      lsp_ref:
+        description: AngelScript extension ref for the runner test
+        default: main
+        type: string
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }} ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            os: windows
+            arch: x64
+            preset: windows-x64
+            extension: zip
+          - runner: ubuntu-24.04
+            os: linux
+            arch: x64
+            preset: linux-x64
+            extension: tar.gz
+          - runner: ubuntu-24.04-arm
+            os: linux
+            arch: arm64
+            preset: linux-arm64
+            extension: tar.gz
+          - runner: macos-15
+            os: macos
+            arch: arm64
+            preset: macos
+            extension: tar.gz
+          - runner: macos-15-intel
+            os: macos
+            arch: x64
+            preset: macos
+            extension: tar.gz
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+        with:
+          arch: x64
+      - name: Install Ninja
+        run: python -m pip install ninja
+      - run: cmake --preset ${{ matrix.preset }}
+      - run: cmake --build --preset ${{ matrix.preset }} --parallel
+      - run: ctest --preset ${{ matrix.preset }}
+      - name: Package release archive
+        id: package
+        shell: pwsh
+        env:
+          BUILD_DIR: build/${{ matrix.preset }}
+          TARGET_OS: ${{ matrix.os }}
+          TARGET_ARCH: ${{ matrix.arch }}
+          EXTENSION: ${{ matrix.extension }}
+        run: |
+          $binary = "$env:BUILD_DIR/bin/angelscript"
+          if ($env:TARGET_OS -eq 'windows') { $binary += '.exe' }
+          $output = & "./$binary" --version
+          if ($LASTEXITCODE -ne 0 -or $output -notmatch '^angelscript ([0-9]+\.[0-9]+\.[0-9]+) ') {
+              throw "Unexpected --version output: $output"
+          }
+          $version = $Matches[1]
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -cne "v$version") {
+              throw "Tag $env:GITHUB_REF_NAME does not match the CLI version $version."
+          }
+          cmake "-DBUILD_DIR=$env:BUILD_DIR" "-DCONFIG=Release" "-DVERSION=$version" "-DOS=$env:TARGET_OS" "-DARCH=$env:TARGET_ARCH" -P scripts/package.cmake
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "archive=dist/angelscript-cli-$version-$env:TARGET_OS-$env:TARGET_ARCH.$env:EXTENSION" >> $env:GITHUB_OUTPUT
+      - name: Test Windows installer offline
+        if: runner.os == 'Windows'
+        shell: powershell
+        env:
+          ARCHIVE: ${{ steps.package.outputs.archive }}
+        run: ./scripts/test-install.ps1 -Archive $env:ARCHIVE -Checksums dist/SHA256SUMS
+      - name: Test POSIX installer offline
+        if: runner.os != 'Windows'
+        shell: sh
+        env:
+          ARCHIVE: ${{ steps.package.outputs.archive }}
+        run: sh scripts/test-install.sh "$ARCHIVE" dist/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: angelscript-cli-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            ${{ steps.package.outputs.archive }}
+            dist/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+
+  e2e-extension:
+    name: Extension runner (${{ matrix.runner }})
+    needs: build
+    if: github.ref_type != 'tag'
+    continue-on-error: true
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            os: linux
+            extension: tar.gz
+            binary: angelscript
+          - runner: windows-latest
+            os: windows
+            extension: zip
+            binary: angelscript.exe
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: angelscript-cli-${{ matrix.os }}-x64
+          path: cli-asset
+      - name: Extract CLI
+        shell: pwsh
+        env:
+          EXTENSION: ${{ matrix.extension }}
+          BINARY: ${{ matrix.binary }}
+        run: |
+          $archive = Get-ChildItem -Path cli-asset -Filter "angelscript-cli-*.$env:EXTENSION"
+          $bin = New-Item -ItemType Directory -Path cli-bin
+          Push-Location $bin.FullName
+          try {
+              cmake -E tar xf $archive.FullName
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } finally {
+              Pop-Location
+          }
+          "ANGELSCRIPT_CLI_PATH=$(Join-Path $bin.FullName $env:BINARY)" >> $env:GITHUB_ENV
+      - uses: actions/checkout@v4
+        with:
+          repository: Gaftherman/angelscript-lsp
+          ref: ${{ inputs.lsp_ref || 'main' }}
+          path: extension
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+        working-directory: extension/client
+      - name: Test extension runner on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:runner-e2e
+        working-directory: extension/client
+      - name: Test extension runner on Windows
+        if: runner.os == 'Windows'
+        run: npm run test:runner-e2e
+        working-directory: extension/client

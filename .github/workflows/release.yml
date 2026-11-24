@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: angelscript-cli-*
+          path: release-artifacts
+      - name: Assemble release files and changelog
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          import re
+          import shutil
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", tag):
+              raise SystemExit(f"Expected a vX.Y.Z release tag, got {tag}")
+          version = tag[1:]
+          release = Path("release")
+          release.mkdir()
+          expected_platforms = {
+              "windows-x64": "zip",
+              "linux-x64": "tar.gz",
+              "linux-arm64": "tar.gz",
+              "macos-x64": "tar.gz",
+              "macos-arm64": "tar.gz",
+          }
+          sums = []
+          for platform, extension in expected_platforms.items():
+              artifact = Path("release-artifacts") / f"angelscript-cli-{platform}"
+              asset_name = f"angelscript-cli-{version}-{platform}.{extension}"
+              asset = artifact / asset_name
+              manifest = (artifact / "SHA256SUMS").read_text(encoding="ascii").splitlines()
+              with asset.open("rb") as archive:
+                  digest = hashlib.file_digest(archive, "sha256").hexdigest()
+              expected = f"{digest}  {asset_name}"
+              if manifest != [expected]:
+                  raise SystemExit(f"Invalid SHA256SUMS for {asset_name}")
+              shutil.copyfile(asset, release / asset_name)
+              sums.append(expected)
+          (release / "SHA256SUMS").write_text("\n".join(sorted(sums)) + "\n", encoding="ascii")
+
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          heading = re.search(rf"^## \[{re.escape(version)}\](?:[ \t]+-[^\n]*)?[ \t]*$", changelog, re.M)
+          if not heading:
+              raise SystemExit(f"No changelog section for {tag}")
+          body = re.split(r"^(?:## |\[[^\]]+\]:)", changelog[heading.end():], maxsplit=1, flags=re.M)[0].strip()
+          if not body:
+              raise SystemExit(f"Empty changelog section for {tag}")
+          Path("release-body.md").write_text(body + "\n", encoding="utf-8")
+          PY
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/angelscript-cli-* release/SHA256SUMS \
+            --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-body.md
