@@ -104,7 +104,7 @@ public static extern System.IntPtr SendMessageTimeout(
     $parent = [IO.Path]::GetDirectoryName($InstallDir)
     if (-not $parent -or $InstallDir.Contains(';')) { throw 'Choose an install directory below the drive root with no semicolons.' }
 
-    $packageFiles = @('angelscript.exe', 'LICENSE', 'README.md')
+    $packageFiles = @('angelscript.exe', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'README.md')
     $aliasFiles = @('asc.exe', 'angelscript-cli.exe')
     $existing = Get-Item -LiteralPath $InstallDir -Force -ErrorAction SilentlyContinue
     if ($existing) {

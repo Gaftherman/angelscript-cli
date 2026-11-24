@@ -90,6 +90,41 @@ jobs:
           cmake "-DBUILD_DIR=$env:BUILD_DIR" "-DCONFIG=Release" "-DVERSION=$version" "-DOS=$env:TARGET_OS" "-DARCH=$env:TARGET_ARCH" -P scripts/package.cmake
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "archive=dist/angelscript-cli-$version-$env:TARGET_OS-$env:TARGET_ARCH.$env:EXTENSION" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup --no-progress -y }
+      - name: Build and test Windows setup program
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          BUILD_DIR: build/${{ matrix.preset }}
+          VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          ./scripts/package-installer.ps1 -Binary "$env:BUILD_DIR/bin/angelscript.exe" -Version $env:VERSION
+          ./scripts/test-installer.ps1 -Setup "dist/angelscript-cli-$env:VERSION-windows-x64-setup.exe" -Version $env:VERSION
+      - name: Build and test Debian package
+        if: runner.os == 'Linux'
+        shell: sh
+        env:
+          BUILD_DIR: build/${{ matrix.preset }}
+          VERSION: ${{ steps.package.outputs.version }}
+          TARGET_ARCH: ${{ matrix.arch }}
+        run: |
+          sh scripts/package-os.sh deb "$BUILD_DIR/bin/angelscript" "$VERSION" "$TARGET_ARCH"
+          sh scripts/test-os-package.sh "dist/angelscript-cli-$VERSION-linux-$TARGET_ARCH.deb" "$VERSION"
+      - name: Build and test macOS package
+        if: runner.os == 'macOS'
+        shell: sh
+        env:
+          BUILD_DIR: build/${{ matrix.preset }}
+          VERSION: ${{ steps.package.outputs.version }}
+          TARGET_ARCH: ${{ matrix.arch }}
+        run: |
+          sh scripts/package-os.sh pkg "$BUILD_DIR/bin/angelscript" "$VERSION" "$TARGET_ARCH"
+          sh scripts/test-os-package.sh "dist/angelscript-cli-$VERSION-macos-$TARGET_ARCH.pkg" "$VERSION"
       - name: Test Windows installer offline
         if: runner.os == 'Windows'
         shell: powershell
@@ -107,6 +142,9 @@ jobs:
           name: angelscript-cli-${{ matrix.os }}-${{ matrix.arch }}
           path: |
             ${{ steps.package.outputs.archive }}
+            dist/*-setup.exe
+            dist/*.deb
+            dist/*.pkg
             dist/SHA256SUMS
           if-no-files-found: error
           compression-level: 0

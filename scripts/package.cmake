@@ -43,9 +43,9 @@ string(RANDOM LENGTH 16 ALPHABET 0123456789abcdef suffix)
 set(work "${dist}/.package-${suffix}")
 set(stage "${work}/stage")
 file(MAKE_DIRECTORY "${stage}")
-file(COPY "${binary}" "${root}/LICENSE" "${root}/README.md" DESTINATION "${stage}")
+file(COPY "${binary}" "${root}/LICENSE" "${root}/THIRD_PARTY_NOTICES.md" "${root}/README.md" DESTINATION "${stage}")
 execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E tar "${tar_mode}" "${work}/${asset}" "--format=${format}" -- "${program}" LICENSE README.md
+    COMMAND "${CMAKE_COMMAND}" -E tar "${tar_mode}" "${work}/${asset}" "--format=${format}" -- "${program}" LICENSE THIRD_PARTY_NOTICES.md README.md
     WORKING_DIRECTORY "${stage}"
     RESULT_VARIABLE status)
 if(NOT status STREQUAL "0")

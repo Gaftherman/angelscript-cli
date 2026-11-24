@@ -11,6 +11,42 @@ Hello, world!
 
 ## Install
 
+### Windows
+
+Download `angelscript-cli-1.0.0-windows-x64-setup.exe` from [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) and run it.
+
+1. Accept the license.
+
+<p align="center"><img src="docs/images/install-1-license.png" alt="Setup license page" width="520"></p>
+
+2. Choose the folder. The default is inside your user profile and needs no administrator rights.
+
+<p align="center"><img src="docs/images/install-2-folder.png" alt="Setup folder page" width="520"></p>
+
+3. Keep **Add AngelScript to the PATH environment variable** checked.
+
+<p align="center"><img src="docs/images/install-3-tasks.png" alt="Setup tasks page with the PATH option" width="520"></p>
+
+4. Press **Install**, then **Finish**.
+
+<p align="center"><img src="docs/images/install-5-finish.png" alt="Setup finished page" width="520"></p>
+
+Open a new terminal and run `asc --version`. To remove it, use **Settings > Apps**. The setup is not code-signed yet, so Windows SmartScreen may show **Windows protected your PC**: choose **More info**, then **Run anyway**.
+
+### macOS
+
+Download `angelscript-cli-1.0.0-macos-arm64.pkg` (Apple silicon) or `angelscript-cli-1.0.0-macos-x64.pkg` (Intel) from [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) and open it. It installs into `/usr/local/bin`. The package is not notarized yet: if macOS blocks it, right-click it and choose **Open**.
+
+### Linux
+
+~~~sh
+$ sudo apt install ./angelscript-cli-1.0.0-linux-x64.deb
+~~~
+
+Use `linux-arm64` on ARM. Remove it with `sudo apt remove angelscript-cli`.
+
+### Scripts, without administrator rights
+
 ~~~powershell
 > irm https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.ps1 | iex
 ~~~
@@ -19,7 +55,7 @@ Hello, world!
 $ curl -fsSL https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.sh | sh
 ~~~
 
-Open a new terminal. Three names run the same program: `angelscript`, the short `asc` and the older `angelscript-cli`. To pick a version, set `ANGELSCRIPT_CLI_VERSION` in PowerShell or run `sh -s -- --version 0.2.0`. To install by hand, extract the archive from [Releases](https://github.com/Gaftherman/angelscript-cli/releases).
+Open a new terminal. Three names run the same program: `angelscript`, the short `asc` and the older `angelscript-cli`. To pick a version, set `ANGELSCRIPT_CLI_VERSION` in PowerShell or run `sh -s -- --version 1.0.0`. To install by hand, extract the archive from [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
 
 ## Quick start
 
@@ -163,6 +199,12 @@ float: 3.14
 
 3. Press F5. The extension finds `angelscript`, `asc` or `angelscript-cli` on PATH. Set `angelscript.runner.path` to use another executable.
 
+<p align="center"><img src="docs/images/vscode-files.png" alt="files.as open in VS Code with asc running it in the terminal" width="720"></p>
+<p align="center"><em>The extension checks the code as you type. The terminal runs it with <code>asc</code>.</em></p>
+
+<p align="center"><img src="docs/images/vscode-tcp-echo.png" alt="tcp-echo.as open in VS Code with its output in the terminal" width="720"></p>
+<p align="center"><em>A TCP echo example and its output.</em></p>
+
 ## Reference
 
 | Command | Does |
@@ -191,6 +233,17 @@ ctest --preset windows-x64
 ## Roadmap
 
 [Package management and JIT](docs/ROADMAP.md)
+
+## Credits
+
+AngelScript CLI runs on the work of these projects. Their licenses are reproduced in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and ship with every package.
+
+| Project | License | Use |
+| --- | --- | --- |
+| [AngelScript](https://github.com/anjo76/angelscript) by Andreas Jönsson | zlib | The language and its runtime |
+| [asdebugger](https://github.com/Gaftherman/asdebugger) | MIT | Debug Adapter Protocol core |
+| [cppdap](https://github.com/google/cppdap) | Apache-2.0 | Debug Adapter Protocol library |
+| [nlohmann/json](https://github.com/nlohmann/json) | MIT | JSON, through cppdap |
 
 ## License
 

@@ -11,6 +11,42 @@ Hello, world!
 
 ## Instalación
 
+### Windows
+
+Descarga `angelscript-cli-1.0.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo.
+
+1. Acepta la licencia.
+
+<p align="center"><img src="docs/images/install-1-license.png" alt="Página de licencia del instalador" width="520"></p>
+
+2. Elige la carpeta. La predeterminada está en tu perfil de usuario y no necesita permisos de administrador.
+
+<p align="center"><img src="docs/images/install-2-folder.png" alt="Página de carpeta del instalador" width="520"></p>
+
+3. Deja marcada **Add AngelScript to the PATH environment variable** (añadir AngelScript a la variable PATH).
+
+<p align="center"><img src="docs/images/install-3-tasks.png" alt="Página de tareas del instalador con la opción de PATH" width="520"></p>
+
+4. Pulsa **Install** y después **Finish**.
+
+<p align="center"><img src="docs/images/install-5-finish.png" alt="Página final del instalador" width="520"></p>
+
+Abre una terminal nueva y ejecuta `asc --version`. Para quitarlo, usa **Configuración > Aplicaciones**. El instalador aún no está firmado, así que Windows SmartScreen puede mostrar **Windows protegió su PC**: elige **Más información** y después **Ejecutar de todas formas**.
+
+### macOS
+
+Descarga `angelscript-cli-1.0.0-macos-arm64.pkg` (Apple silicon) o `angelscript-cli-1.0.0-macos-x64.pkg` (Intel) desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ábrelo. Se instala en `/usr/local/bin`. El paquete aún no está notarizado: si macOS lo bloquea, haz clic derecho y elige **Abrir**.
+
+### Linux
+
+~~~sh
+$ sudo apt install ./angelscript-cli-1.0.0-linux-x64.deb
+~~~
+
+Usa `linux-arm64` en ARM. Para quitarlo, ejecuta `sudo apt remove angelscript-cli`.
+
+### Scripts, sin permisos de administrador
+
 ~~~powershell
 > irm https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.ps1 | iex
 ~~~
@@ -19,7 +55,7 @@ Hello, world!
 $ curl -fsSL https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.sh | sh
 ~~~
 
-Abre una terminal nueva. Tres nombres ejecutan el mismo programa: `angelscript`, el corto `asc` y el anterior `angelscript-cli`. Para elegir una versión, define `ANGELSCRIPT_CLI_VERSION` en PowerShell o ejecuta `sh -s -- --version 0.2.0`. Para instalar a mano, extrae el archivo de [Releases](https://github.com/Gaftherman/angelscript-cli/releases).
+Abre una terminal nueva. Tres nombres ejecutan el mismo programa: `angelscript`, el corto `asc` y el anterior `angelscript-cli`. Para elegir una versión, define `ANGELSCRIPT_CLI_VERSION` en PowerShell o ejecuta `sh -s -- --version 1.0.0`. Para instalar a mano, extrae el archivo de [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
 
 ## Inicio rápido
 
@@ -163,6 +199,12 @@ float: 3.14
 
 3. Pulsa F5. La extensión busca `angelscript`, `asc` o `angelscript-cli` en el PATH. Define `angelscript.runner.path` para usar otro ejecutable.
 
+<p align="center"><img src="docs/images/vscode-files.png" alt="files.as abierto en VS Code con asc ejecutándolo en la terminal" width="720"></p>
+<p align="center"><em>La extensión revisa el código mientras escribes. La terminal lo ejecuta con <code>asc</code>.</em></p>
+
+<p align="center"><img src="docs/images/vscode-tcp-echo.png" alt="tcp-echo.as abierto en VS Code con su salida en la terminal" width="720"></p>
+<p align="center"><em>Un ejemplo de eco TCP y su salida.</em></p>
+
 ## Referencia
 
 | Comando | Hace |
@@ -191,6 +233,17 @@ ctest --preset windows-x64
 ## Hoja de ruta
 
 [Gestión de paquetes y JIT](docs/ROADMAP.md)
+
+## Créditos
+
+AngelScript CLI se apoya en el trabajo de estos proyectos. Sus licencias se reproducen en [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) y se incluyen en cada paquete.
+
+| Proyecto | Licencia | Uso |
+| --- | --- | --- |
+| [AngelScript](https://github.com/anjo76/angelscript) de Andreas Jönsson | zlib | El lenguaje y su runtime |
+| [asdebugger](https://github.com/Gaftherman/asdebugger) | MIT | Núcleo del Debug Adapter Protocol |
+| [cppdap](https://github.com/google/cppdap) | Apache-2.0 | Biblioteca del Debug Adapter Protocol |
+| [nlohmann/json](https://github.com/nlohmann/json) | MIT | JSON, a través de cppdap |
 
 ## Licencia
 

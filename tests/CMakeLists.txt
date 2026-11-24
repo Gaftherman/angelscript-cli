@@ -12,6 +12,7 @@ foreach(integration_case IN ITEMS hello args stdlib filesystem datetime int-main
     net-echo net-refused net-closed examples)
     add_test(NAME "cli-${integration_case}"
         COMMAND "${CMAKE_COMMAND}" "-DCLI=$<TARGET_FILE:angelscript-cli>" "-DCASE=${integration_case}"
+                "-DVERSION=${PROJECT_VERSION}"
                 -P "${CMAKE_CURRENT_SOURCE_DIR}/integration.cmake")
 endforeach()
 

@@ -108,7 +108,7 @@ if [ -L "$install_dir" ] || { [ -e "$install_dir" ] && [ ! -d "$install_dir" ]; 
 fi
 if [ -d "$install_dir" ]; then
     unexpected=$(find "$install_dir/." -name . -o -prune \
-        ! \( -type f \( -name angelscript -o -name angelscript-cli -o -name LICENSE -o -name README.md \) \) -print)
+        ! \( -type f \( -name angelscript -o -name angelscript-cli -o -name LICENSE -o -name THIRD_PARTY_NOTICES.md -o -name README.md \) \) -print)
     [ -z "$unexpected" ] || fail "The install directory contains files owned by something else: $install_dir"
 fi
 
@@ -209,11 +209,11 @@ if [ -n "$checksums" ]; then
 fi
 
 tar -tzf "$archive" > "$work/entries"
-if [ "$(LC_ALL=C sort "$work/entries")" != "$(printf '%s\n' LICENSE README.md angelscript)" ]; then
-    fail "Unexpected files in $asset. Expected LICENSE, README.md and angelscript at the archive root."
+if [ "$(LC_ALL=C sort "$work/entries")" != "$(printf '%s\n' LICENSE README.md THIRD_PARTY_NOTICES.md angelscript)" ]; then
+    fail "Unexpected files in $asset. Expected LICENSE, README.md, THIRD_PARTY_NOTICES.md and angelscript at the archive root."
 fi
 mkdir "$stage"
-for entry in LICENSE README.md angelscript; do
+for entry in LICENSE README.md THIRD_PARTY_NOTICES.md angelscript; do
     tar -xOzf "$archive" "$entry" > "$stage/$entry"
 done
 chmod 755 "$stage/angelscript"

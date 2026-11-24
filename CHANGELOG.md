@@ -4,29 +4,21 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-11-24
+## [1.0.0] - 2026-11-24
+
+First release.
 
 ### Added
 
-- TCP sockets in the standard library: `tcpConnect`, `tcpListen`, `TcpSocket` and `TcpListener`.
+- The `angelscript` command, also available as `asc` and `angelscript-cli`, runs AngelScript 2.39 scripts with arguments, relative includes and a compile-only mode.
+- Standard library add-ons, the print, println and getArgs functions, and TCP sockets: `tcpConnect`, `tcpListen`, `TcpSocket` and `TcpListener`.
 - Runnable examples in `examples/` for files, folders, strings, dates, exit codes and TCP, covered by the test suite.
-- English and Spanish READMEs with the language switch and terminal demonstrations.
-
-### Changed
-
-- The program is now named `angelscript`. The installers also create the short `asc` and the previous `angelscript-cli` commands.
-- Fix the macOS build by taking asdebugger with the `mincore` signature fix.
-
-## [0.1.0] - 2026-11-24
-
-### Added
-
-- Standalone AngelScript 2.39 interpreter with script arguments, relative includes and a compile-only mode.
-- Standard library add-ons and the print, println and getArgs functions.
 - Debug Adapter Protocol sessions for VS Code.
-- Windows x64, Linux x64 and arm64, and macOS x64 and arm64 release archives with SHA-256 checksums.
-- PowerShell and POSIX shell installers with offline installation and uninstall.
+- A setup program for Windows (Inno Setup, with an optional PATH entry and an uninstaller), a `.pkg` for macOS and a `.deb` for Linux, built on every release and listed in `SHA256SUMS`.
+- Windows x64, Linux x64 and arm64, and macOS x64 and arm64 archives with SHA-256 checksums, and PowerShell and POSIX shell installers with offline installation and uninstall.
+- `THIRD_PARTY_NOTICES.md` with the licenses of AngelScript, asdebugger, cppdap and nlohmann/json, included in every package.
+- English and Spanish READMEs with terminal demonstrations and step-by-step installation screenshots.
+- The release is created automatically when the version in `CMakeLists.txt` has no tag yet.
 
-[Unreleased]: https://github.com/Gaftherman/angelscript-cli/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/Gaftherman/angelscript-cli/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/Gaftherman/angelscript-cli/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Gaftherman/angelscript-cli/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Gaftherman/angelscript-cli/releases/tag/v1.0.0
