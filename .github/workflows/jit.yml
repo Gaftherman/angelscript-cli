@@ -1,0 +1,65 @@
+name: JIT
+
+# Builds and tests the optional angelsea JIT (ANGELSCRIPT_CLI_JIT=angelsea). It is a separate workflow so that an
+# alpha-quality dependency never blocks CI or a release. The interpreter build is the one that ships.
+on:
+  push:
+    branches: [main]
+    paths:
+      - CMakeLists.txt
+      - src/runtime/**
+      - external/angelsea
+      - external/angelscript
+      - .github/workflows/jit.yml
+  pull_request:
+    paths:
+      - CMakeLists.txt
+      - src/runtime/**
+      - external/angelsea
+      - external/angelscript
+      - .github/workflows/jit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  jit:
+    name: angelsea (${{ matrix.os }} ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {runner: ubuntu-24.04, os: linux, arch: x64, experimental: false}
+          - {runner: windows-latest, os: windows, arch: x64, experimental: false}
+          - {runner: ubuntu-24.04-arm, os: linux, arch: arm64, experimental: true}
+          - {runner: macos-15, os: macos, arch: arm64, experimental: true}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Fetch the JIT dependencies
+        run: git -C external/angelsea submodule update --init vendor/mir vendor/fmt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - name: Build and test with the JIT
+        shell: bash
+        run: |
+          python -m pip install ninja
+          cmake -S . -B build/jit -G Ninja -DCMAKE_BUILD_TYPE=Release -DANGELSCRIPT_CLI_JIT=angelsea
+          cmake --build build/jit
+          ctest --test-dir build/jit --output-on-failure
+      - name: The JIT is active
+        shell: bash
+        run: |
+          binary=build/jit/bin/angelscript
+          [ -f "$binary.exe" ] && binary="$binary.exe"
+          "$binary" --version | grep -q 'jit: angelsea'
+          printf 'int fib(int n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }\nint main() { return fib(30) == 832040 ? 0 : 1; }\n' > fib.as
+          "$binary" run fib.as

@@ -23,13 +23,17 @@ Download `angelscript-cli-1.1.0-windows-x64-setup.exe` from [Releases](https://g
 
 <p align="center"><img src="docs/images/install-2-folder.png" alt="Setup folder page" width="520"></p>
 
-3. Keep **Add AngelScript to the PATH environment variable** checked.
+3. Choose what to install. The command line is always installed. Every AngelScript release listed below it adds one more program, `angelscript-<version>`, built against that engine, next to the default `angelscript`. Clear the ones you do not need, or pick **Custom installation** to select them one by one. The releases appear once the builds for the engines are attached to the release, a few minutes after it is published.
 
-<p align="center"><img src="docs/images/install-3-tasks.png" alt="Setup tasks page with the PATH option" width="520"></p>
+<p align="center"><img src="docs/images/install-3-components.png" alt="Setup components page with one checkbox per AngelScript release" width="520"></p>
 
-4. Press **Install**, then **Finish**.
+4. Keep **Add AngelScript to the PATH environment variable** checked.
 
-<p align="center"><img src="docs/images/install-5-finish.png" alt="Setup finished page" width="520"></p>
+<p align="center"><img src="docs/images/install-4-tasks.png" alt="Setup tasks page with the PATH option" width="520"></p>
+
+5. Press **Install**, then **Finish**.
+
+<p align="center"><img src="docs/images/install-6-finish.png" alt="Setup finished page" width="520"></p>
 
 Open a new terminal and run `asc --version`. To remove it, use **Settings > Apps**. The setup is not code-signed yet, so Windows SmartScreen may show **Windows protected your PC**: choose **More info**, then **Run anyway**.
 
@@ -230,7 +234,7 @@ Add this to `configurations` in `.vscode/launch.json`, set a breakpoint and pres
 
 <p align="center"><img src="https://raw.githubusercontent.com/Gaftherman/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code attached to a script that asc runs in Command Prompt, stepping through addBonus" width="720"></p>
 
-The debugger needs AngelScript 2.36.0 or later (see [docs/ENGINE_VERSIONS.md](docs/ENGINE_VERSIONS.md)) and comes from [angelscript-dap](https://github.com/Gaftherman/angelscript-dap).
+The debugger needs AngelScript 2.36.0 or later (see [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md)) and comes from [angelscript-dap](https://github.com/Gaftherman/angelscript-dap).
 
 ## Reference
 
@@ -258,6 +262,18 @@ cmake --build --preset windows-x64
 ctest --preset windows-x64
 ~~~
 
+### JIT (optional)
+
+The interpreter is the default. To build with the [angelsea](https://github.com/asumagic/angelsea) JIT, which needs AngelScript 2.37 or later and a 64-bit Windows or Linux x86-64 target, or arm64 (experimental), fetch its dependencies and set the option:
+
+~~~sh
+git submodule update --init external/angelsea
+git -C external/angelsea submodule update --init vendor/mir vendor/fmt
+cmake --preset windows-x64 -DANGELSCRIPT_CLI_JIT=angelsea
+~~~
+
+`angelscript --version` then ends with `jit: angelsea`. `--no-jit` and debugger sessions (`--dap-port`) keep using the interpreter. angelsea is alpha software; [the roadmap](docs/ROADMAP.md) compares it with the other AngelScript JITs.
+
 ## Roadmap
 
 [Package management and JIT](docs/ROADMAP.md)
@@ -279,7 +295,7 @@ AngelScript CLI runs on the work of these projects. Their licenses are reproduce
 
 ## Support
 
-Open an [issue](https://github.com/Gaftherman/angelscript-cli/issues) for the command line program, the installers and the engine versions listed in [docs/ENGINE_VERSIONS.md](docs/ENGINE_VERSIONS.md). Include the output of `angelscript --version`, your operating system and a short script that reproduces the problem. Debugger problems go to [angelscript-dap](https://github.com/Gaftherman/angelscript-dap/issues), and editor problems to [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp/issues). To help, read [CONTRIBUTING.md](CONTRIBUTING.md).
+Open an [issue](https://github.com/Gaftherman/angelscript-cli/issues) for the command line program, the installers and the engine versions listed in [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md). Include the output of `angelscript --version`, your operating system and a short script that reproduces the problem. Debugger problems go to [angelscript-dap](https://github.com/Gaftherman/angelscript-dap/issues), and editor problems to [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp/issues). To help, read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Related projects
 

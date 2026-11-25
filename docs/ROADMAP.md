@@ -24,4 +24,14 @@ The installer runs no package scripts. Pin hashes in the lockfile, validate pack
 
 ## JIT
 
-The `JitProvider` interface is already in place and 0.1 ships with `NullJit`. A real provider must build against AngelScript 2.39 on its supported platforms, pass the script fixtures with JIT enabled, and document its debugger policy. Keep the interpreter active in DAP sessions unless the provider can preserve breakpoints, stepping and inspection and passes the debugger fixtures.
+`JitProvider` selects the JIT at build time (`ANGELSCRIPT_CLI_JIT`). The default is `NullJit`, the interpreter. `-DANGELSCRIPT_CLI_JIT=angelsea` builds [angelsea](https://github.com/asumagic/angelsea) in and passes the whole test suite on Windows x64 and Linux x64 with AngelScript 2.39. The interpreter stays active in DAP sessions and with `--no-jit`, because angelsea does not preserve breakpoints, stepping or inspection (it compiles without line cues).
+
+The three existing AngelScript JITs, read from their sources:
+
+| JIT | Backend and targets | AngelScript | License | What it lacks |
+| --- | --- | --- | --- | --- |
+| [angelsea](https://github.com/asumagic/angelsea) | C translated to native code by MIR. Windows (MSVC, MinGW) and Linux x86-64; arm64 on Linux and macOS (experimental). | 2.37 and later (`asIJITCompilerV2`); it pins 2.38.0. 2.38 and 2.39 have the same bytecodes and JIT interface. | BSD-2-Clause (MIR and fmt: MIT) | Alpha. Falls back to the interpreter for `SUSPEND`, `CallPtr`, `FuncPtr`, `ALLOC`/`FREE`, list and `POW` instructions. No 32-bit x86 and no macOS x64. Needs a fork of MIR. Reads the engine's internal headers. |
+| [BlindMindStudios JIT](https://github.com/BlindMindStudios/AngelScript-JIT-Compiler) | Hand-written x86 and x86-64 emitter for Windows and Linux. | 2.31.0 (`asIJITCompiler`, the first interface). | MIT | Unmaintained since 2016. It predates `asBC_TryBlock` (try/catch, 2.33), has open x64 call bugs, and has no arm64. |
+| [sven_jit](https://github.com/DrAbcOfficial/sven_jit) | A Metamod plugin for the Sven Co-op server over `angelscript_jit_x86` (AsmJit). 32-bit x86 only. | 2.36.1 | GPL-3.0 | Not a library: it patches Sven Co-op's own AngelScript. GPL would make a binary that links it GPL, and it has no x64 or arm64. |
+
+Only angelsea fits this CLI: it is a library, its license is compatible with MIT, and it supports the current engine. Before it can be enabled by default it needs the debugger fixtures with a JIT-aware policy, release builds for each target, and a beta release.

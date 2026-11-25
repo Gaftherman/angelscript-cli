@@ -5,83 +5,21 @@ option(ANGELSCRIPT_CLI_BUILD_TESTS "Build and register the CLI tests" ON)
 
 set(ANGELSCRIPT_SDK "${CMAKE_CURRENT_SOURCE_DIR}/external/angelscript/sdk"
     CACHE PATH "AngelScript SDK to build against (an official release or the bundled submodule)")
+set(ANGELSCRIPT_ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/angelscript-engine"
+    CACHE PATH "Checkout of angelscript-engine (builds any official AngelScript release and patches its sources)")
 set(ASDEBUGGER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/angelscript-dap"
     CACHE PATH "Checkout of angelscript-dap (the host-agnostic DAP core)")
 if(NOT EXISTS "${ANGELSCRIPT_SDK}/angelscript/include/angelscript.h"
-   OR NOT EXISTS "${ASDEBUGGER_DIR}/src/as_debugger_host.h")
-    message(FATAL_ERROR "The AngelScript SDK and the debugger core (angelscript-dap) must be present in external/.")
+   OR NOT EXISTS "${ASDEBUGGER_DIR}/src/as_debugger_host.h"
+   OR NOT EXISTS "${ANGELSCRIPT_ENGINE_DIR}/cmake/AngelScriptEngine.cmake")
+    message(FATAL_ERROR "The AngelScript SDK, the debugger core (angelscript-dap) and angelscript-engine must be present in external/.")
 endif()
 
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-set(BUILD_SHARED_LIBS OFF)
-set(AS_DISABLE_INSTALL ON)
-file(STRINGS "${ANGELSCRIPT_SDK}/angelscript/include/angelscript.h" angelscript_version_line
-     REGEX "^#define ANGELSCRIPT_VERSION[ \t]+[0-9]+")
-string(REGEX MATCH "[0-9]+$" ANGELSCRIPT_CLI_ENGINE_NUMBER "${angelscript_version_line}")
-file(STRINGS "${ANGELSCRIPT_SDK}/angelscript/include/angelscript.h" angelscript_version_string_line
-     REGEX "^#define ANGELSCRIPT_VERSION_STRING")
-string(REGEX MATCH "\"[^\"]+\"" ANGELSCRIPT_CLI_ENGINE_STRING "${angelscript_version_string_line}")
-string(REPLACE "\"" "" ANGELSCRIPT_CLI_ENGINE_VERSION "${ANGELSCRIPT_CLI_ENGINE_STRING}")
-message(STATUS "Building against AngelScript ${ANGELSCRIPT_CLI_ENGINE_VERSION} (${ANGELSCRIPT_CLI_ENGINE_NUMBER})")
-
-# The SDK's own CMake project is only dependable from 2.31 on. Earlier releases miss the target or add
-# test projects that do not exist in the archive, so the engine sources are built directly.
-#
-# On arm64 some releases have no native call convention for the target. 2.33 and earlier pick the 32-bit ARM
-# assembly (or, on Linux before 2.31, the x86-64 one), 2.35 builds an ELF-only assembly that Apple's assembler
-# rejects, and 2.36 predates the Apple silicon port of 2.37. Those builds use the engine's own portable mode
-# (AS_MAX_PORTABILITY), which compiles no assembly and calls through the generic convention.
-set(ANGELSCRIPT_CLI_PORTABLE OFF)
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64|ARM64)$"
-   AND (ANGELSCRIPT_CLI_ENGINE_NUMBER LESS 23500
-        OR (APPLE AND ANGELSCRIPT_CLI_ENGINE_NUMBER LESS 23700)))
-    set(ANGELSCRIPT_CLI_PORTABLE ON)
-    message(STATUS "AngelScript ${ANGELSCRIPT_CLI_ENGINE_VERSION} has no native calls on this arm64 target: portable mode")
-endif()
-if(ANGELSCRIPT_CLI_ENGINE_NUMBER GREATER_EQUAL 23100
-   AND NOT ANGELSCRIPT_CLI_PORTABLE
-   AND EXISTS "${ANGELSCRIPT_SDK}/angelscript/projects/cmake/CMakeLists.txt")
-    add_subdirectory("${ANGELSCRIPT_SDK}/angelscript/projects/cmake" angelscript)
-else()
-    file(GLOB angelscript_sources CONFIGURE_DEPENDS "${ANGELSCRIPT_SDK}/angelscript/source/*.cpp")
-    add_library(angelscript STATIC ${angelscript_sources})
-    find_package(Threads REQUIRED)
-    target_link_libraries(angelscript PUBLIC Threads::Threads)
-    if(ANGELSCRIPT_CLI_PORTABLE)
-        target_compile_definitions(angelscript PUBLIC AS_MAX_PORTABILITY)
-    endif()
-endif()
-
-# Releases before 2.31 use std::has_trivial_* traits that no standard library ships any more.
-set(cli_legacy_std_header "${CMAKE_CURRENT_SOURCE_DIR}/src/compat/LegacyStd.h")
-function(cli_force_legacy_std target)
-    if(ANGELSCRIPT_CLI_ENGINE_NUMBER LESS 23100)
-        if(MSVC)
-            target_compile_options(${target} PRIVATE "/FI${cli_legacy_std_header}")
-        else()
-            target_compile_options(${target} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${cli_legacy_std_header}>")
-        endif()
-    endif()
-endfunction()
-cli_force_legacy_std(angelscript)
-# Official sources before 2.31 and some add-ons predate stricter GCC and Clang checks. The flags only downgrade
-# those diagnostics and add <cstring>; no SDK file is patched.
-function(cli_relax_old_sources target)
-    if(NOT MSVC)
-        # C++ only: the arm64 call-convention sources are assembly and have no <cstring>.
-        target_compile_options(${target} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include cstring>")
-        if(ANGELSCRIPT_CLI_ENGINE_NUMBER LESS 23100)
-            target_compile_options(${target} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-fpermissive>")
-        endif()
-    endif()
-endfunction()
-cli_relax_old_sources(angelscript)
-# Older SDK projects do not export their headers to the targets that link them.
-include_directories(SYSTEM "${ANGELSCRIPT_SDK}/angelscript/include")
+include("${ANGELSCRIPT_ENGINE_DIR}/cmake/AngelScriptEngine.cmake")
 
 # The debugger core needs the context and function introspection API of 2.36 and later.
 set(ANGELSCRIPT_CLI_HAS_DAP OFF)
-if(ANGELSCRIPT_CLI_ENGINE_NUMBER GREATER_EQUAL 23600)
+if(ANGELSCRIPT_ENGINE_NUMBER GREATER_EQUAL 23600)
     set(ANGELSCRIPT_CLI_HAS_DAP ON)
 endif()
 
@@ -91,7 +29,7 @@ set(ASDEBUGGER_STD_ADDON_DIR "${ANGELSCRIPT_SDK}/add_on")
 if(ANGELSCRIPT_CLI_HAS_DAP)
     add_subdirectory("${ASDEBUGGER_DIR}" asdebugger)
     if(TARGET asdebugger_core)
-        cli_force_legacy_std(asdebugger_core)
+        angelscript_engine_force_legacy_std(asdebugger_core)
     endif()
 endif()
 
@@ -118,7 +56,7 @@ foreach(optional IN ITEMS
     list(GET optional_parts 0 optional_name)
     list(GET optional_parts 1 optional_source)
     set(optional_usable "${ASDEBUGGER_STD_ADDON_DIR}/${optional_source}")
-    if(EXISTS "${optional_usable}" AND ANGELSCRIPT_CLI_PORTABLE)
+    if(EXISTS "${optional_usable}" AND ANGELSCRIPT_ENGINE_PORTABLE)
         # Some older add-ons register native calls only. In portable mode the engine rejects those.
         file(READ "${optional_usable}" optional_text)
         if(NOT optional_text MATCHES "\n[ \t]*if[ \t]*\\([ \t]*strstr\\(asGetLibraryOptions")
@@ -145,7 +83,7 @@ set(helper_header "${ASDEBUGGER_STD_ADDON_DIR}/scripthelper/scripthelper.h")
 if(EXISTS "${helper_header}")
     file(READ "${helper_header}" helper_text)
     set(helper_portable_ok ON)
-    if(ANGELSCRIPT_CLI_PORTABLE)
+    if(ANGELSCRIPT_ENGINE_PORTABLE)
         file(READ "${ASDEBUGGER_STD_ADDON_DIR}/scripthelper/scripthelper.cpp" helper_source)
         if(NOT helper_source MATCHES "\n[ \t]*if[ \t]*\\([ \t]*strstr\\(asGetLibraryOptions")
             set(helper_portable_ok OFF)
@@ -155,11 +93,11 @@ if(EXISTS "${helper_header}")
         list(APPEND cli_optional_addons ANGELSCRIPT_CLI_HAS_EXCEPTION_ROUTINES=1)
     endif()
 endif()
-if(ANGELSCRIPT_CLI_ENGINE_NUMBER GREATER_EQUAL 23900)
+if(ANGELSCRIPT_ENGINE_NUMBER GREATER_EQUAL 23900)
     list(APPEND cli_optional_addons ANGELSCRIPT_CLI_HAS_DUMP_PREDEFINED=1)
 endif()
-cli_force_legacy_std(as_addons)
-cli_relax_old_sources(as_addons)
+angelscript_engine_force_legacy_std(as_addons)
+angelscript_engine_relax_old_sources(as_addons)
 target_include_directories(as_addons SYSTEM PUBLIC "${ANGELSCRIPT_SDK}/angelscript/include")
 foreach(addon IN ITEMS scriptstdstring scriptarray scriptdictionary scriptmath scriptfile datetime scriptbuilder scripthelper)
     if(EXISTS "${ASDEBUGGER_STD_ADDON_DIR}/${addon}")
@@ -170,7 +108,7 @@ target_compile_definitions(as_addons PUBLIC ${cli_optional_addons})
 target_link_libraries(as_addons PUBLIC angelscript)
 
 function(configure_cli_target target)
-    cli_force_legacy_std(${target})
+    angelscript_engine_force_legacy_std(${target})
     target_compile_features(${target} PRIVATE cxx_std_20)
     set_target_properties(${target} PROPERTIES CXX_EXTENSIONS OFF)
     target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src")
@@ -197,7 +135,7 @@ if(ANGELSCRIPT_CLI_HAS_DAP)
     target_sources(angelscript-cli PRIVATE src/debug/DapSession.cpp)
 endif()
 configure_cli_target(angelscript-cli)
-cli_force_legacy_std(angelscript-cli)
+angelscript_engine_force_legacy_std(angelscript-cli)
 set_target_properties(angelscript-cli PROPERTIES OUTPUT_NAME angelscript RUNTIME_OUTPUT_DIRECTORY "$<1:${CMAKE_BINARY_DIR}/bin>")
 target_compile_definitions(angelscript-cli PRIVATE ANGELSCRIPT_CLI_VERSION="${PROJECT_VERSION}")
 target_include_directories(angelscript-cli SYSTEM PRIVATE "${ANGELSCRIPT_SDK}/angelscript/include")
@@ -212,6 +150,37 @@ endif()
 # NetSocket.cpp uses Winsock directly. The debugger core only links it for engines that have a debugger.
 if(WIN32)
     target_link_libraries(angelscript-cli PRIVATE ws2_32)
+endif()
+
+# Optional JIT compiler. angelsea (BSD-2) turns script bytecode into native code through MIR. It uses the
+# asIJITCompilerV2 interface of AngelScript 2.37 and later and runs on 64-bit x86 (Windows, Linux) and arm64.
+set(ANGELSCRIPT_CLI_JIT "none" CACHE STRING "JIT compiler to build in: none or angelsea")
+set_property(CACHE ANGELSCRIPT_CLI_JIT PROPERTY STRINGS none angelsea)
+if(ANGELSCRIPT_CLI_JIT STREQUAL "angelsea")
+    if(ANGELSCRIPT_ENGINE_NUMBER LESS 23700)
+        message(FATAL_ERROR "ANGELSCRIPT_CLI_JIT=angelsea needs AngelScript 2.37 or later (found ${ANGELSCRIPT_ENGINE_VERSION}).")
+    endif()
+    if(ANGELSCRIPT_ENGINE_PORTABLE OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8
+       OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64|arm64|aarch64|ARM64)$"
+       OR (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$"))
+        message(FATAL_ERROR "ANGELSCRIPT_CLI_JIT=angelsea supports 64-bit Windows and Linux on x86-64, and arm64 on Linux and macOS (not 32-bit x86, not macOS x64).")
+    endif()
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/angelsea/vendor/mir/mir.h"
+       OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/angelsea/vendor/fmt/CMakeLists.txt")
+        message(FATAL_ERROR "Run: git submodule update --init external/angelsea && git -C external/angelsea submodule update --init vendor/mir vendor/fmt")
+    endif()
+    enable_language(C)
+    set(ASEA_ANGELSCRIPT_SYSTEM ON CACHE BOOL "" FORCE)
+    set(ASEA_ANGELSCRIPT_ROOT "${ANGELSCRIPT_SDK}" CACHE STRING "" FORCE)
+    add_subdirectory(external/angelsea angelsea EXCLUDE_FROM_ALL)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(angelscript PRIVATE -fno-strict-aliasing)
+    endif()
+    target_sources(angelscript-cli PRIVATE src/runtime/AngelseaJit.cpp)
+    target_link_libraries(angelscript-cli PRIVATE angelsea)
+    target_compile_definitions(angelscript-cli PRIVATE ANGELSCRIPT_CLI_HAS_ANGELSEA=1)
+elseif(NOT ANGELSCRIPT_CLI_JIT STREQUAL "none")
+    message(FATAL_ERROR "ANGELSCRIPT_CLI_JIT must be none or angelsea.")
 endif()
 
 install(TARGETS angelscript-cli RUNTIME DESTINATION bin)

@@ -35,7 +35,12 @@ $engineArgs = @()
 if ($EngineDir) {
     $engineFull = (Resolve-Path -LiteralPath $EngineDir).Path
     if (-not (Get-ChildItem -LiteralPath $engineFull -Filter "angelscript-*.exe")) { throw "No angelscript-<version>.exe in $engineFull" }
-    $engineArgs = @("/DEngineDir=$engineFull")
+    $versions = @(Get-ChildItem -LiteralPath $engineFull -Filter 'angelscript-*.exe' |
+        ForEach-Object { $_.BaseName -replace '^angelscript-', '' } |
+        Where-Object { $_ -match '^[0-9]+\.[0-9]+\.[0-9]+[a-z]?$' } |
+        Sort-Object { [version]($_ -replace '[a-z]$', '') } -Descending)
+    if (-not $versions) { throw "No angelscript-<version>.exe in $engineFull" }
+    $engineArgs = @("/DEngineDir=$engineFull", "/DEngineList=$($versions -join ';')")
 }
 
 & $Compiler @engineArgs "/DAppArch=$Arch" "/DAppVersion=$Version" "/DSourceExe=$binaryPath" "/DLicenseFile=$(Join-Path $root 'LICENSE')" `

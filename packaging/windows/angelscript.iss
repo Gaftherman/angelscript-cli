@@ -1,4 +1,4 @@
-; Inno Setup script for the AngelScript command line.
+﻿; Inno Setup script for the AngelScript command line.
 ; Build: ISCC /DAppVersion=x.y.z /DSourceExe=<angelscript.exe> /DLicenseFile=<LICENSE> /DOutputDir=<dir> angelscript.iss
 
 #ifndef AppVersion
@@ -20,7 +20,8 @@
   #define OutputDir "."
 #endif
 ; Optional: /DAppArch=x86 builds the 32-bit setup (default x64).
-; Optional: /DEngineDir=<folder with angelscript-<version>.exe builds against other AngelScript releases>.
+; Optional: /DEngineDir=<folder with angelscript-<version>.exe builds against other AngelScript releases> and
+; /DEngineList=<those versions separated by ;, newest first>. Each version becomes its own component.
 
 [Setup]
 AppId={{7F3C9A52-6B1E-4D8A-9C0F-2A5E4B7D1C38}
@@ -57,10 +58,35 @@ UninstallDisplayIcon={app}\angelscript.exe
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
+[CustomMessages]
+english.MainComponent=AngelScript command line (angelscript, asc)
+english.EnginesGroup=Builds against other AngelScript releases
+spanish.MainComponent=Línea de comandos de AngelScript (angelscript, asc)
+spanish.EnginesGroup=Compilaciones con otras versiones de AngelScript
+
 #ifdef EngineDir
+#ifndef EngineList
+  #error Pass /DEngineList=<versions separated by ;> together with /DEngineDir
+#endif
+; One component per engine version, newest first: engines\as2_38_0 installs angelscript-2.38.0.exe.
+#define EngineRest ""
+#define EngineVersion ""
+#define EngineId ""
+#sub EmitEngineComponent
+  #expr EngineVersion = Copy(EngineRest, 1, Pos(";", EngineRest) - 1)
+  #expr EngineId = "as" + StringChange(EngineVersion, ".", "_")
+Name: "engines\{#EngineId}"; Description: "AngelScript {#EngineVersion} (angelscript-{#EngineVersion}.exe)"; Types: full custom
+#endsub
+#sub EmitEngineFile
+  #expr EngineVersion = Copy(EngineRest, 1, Pos(";", EngineRest) - 1)
+  #expr EngineId = "as" + StringChange(EngineVersion, ".", "_")
+Source: "{#EngineDir}\angelscript-{#EngineVersion}.exe"; DestDir: "{app}"; Components: "engines\{#EngineId}"; Flags: ignoreversion
+#endsub
+
 [Components]
-Name: "main"; Description: "AngelScript command line (angelscript, asc)"; Types: full compact custom; Flags: fixed
-Name: "engines"; Description: "Builds against other AngelScript releases (angelscript-<version>.exe)"; Types: full
+Name: "main"; Description: "{cm:MainComponent}"; Types: full compact custom; Flags: fixed
+Name: "engines"; Description: "{cm:EnginesGroup}"; Types: full custom
+#for {EngineRest = EngineList + ";"; EngineRest != ""; EngineRest = Copy(EngineRest, Pos(";", EngineRest) + 1)} EmitEngineComponent
 #endif
 
 [Tasks]
@@ -73,7 +99,7 @@ Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "angelscript-cli.exe"; Flags
 Source: "{#LicenseFile}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#NoticesFile}"; DestDir: "{app}"; Flags: ignoreversion
 #ifdef EngineDir
-Source: "{#EngineDir}\angelscript-*.exe"; DestDir: "{app}"; Components: engines; Flags: ignoreversion
+#for {EngineRest = EngineList + ";"; EngineRest != ""; EngineRest = Copy(EngineRest, Pos(";", EngineRest) + 1)} EmitEngineFile
 #endif
 
 [Code]

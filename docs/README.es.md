@@ -23,13 +23,17 @@ Descarga `angelscript-cli-1.1.0-windows-x64-setup.exe` desde [Releases](https://
 
 <p align="center"><img src="images/install-2-folder.png" alt="Página de carpeta del instalador" width="520"></p>
 
-3. Deja marcada **Add AngelScript to the PATH environment variable** (añadir AngelScript a la variable PATH).
+3. Elige qué instalar. La línea de comandos siempre se instala. Cada versión de AngelScript de la lista añade un programa más, `angelscript-<versión>`, compilado con ese motor, junto al `angelscript` predeterminado. Desmarca las que no necesites, o elige **Custom installation** (instalación personalizada) para seleccionarlas una a una. Las versiones aparecen cuando las compilaciones de los motores se adjuntan a la release, unos minutos después de publicarla.
 
-<p align="center"><img src="images/install-3-tasks.png" alt="Página de tareas del instalador con la opción de PATH" width="520"></p>
+<p align="center"><img src="images/install-3-components.png" alt="Página de componentes del instalador con una casilla por versión de AngelScript" width="520"></p>
 
-4. Pulsa **Install** y después **Finish**.
+4. Deja marcada **Add AngelScript to the PATH environment variable** (añadir AngelScript a la variable PATH).
 
-<p align="center"><img src="images/install-5-finish.png" alt="Página final del instalador" width="520"></p>
+<p align="center"><img src="images/install-4-tasks.png" alt="Página de tareas del instalador con la opción de PATH" width="520"></p>
+
+5. Pulsa **Install** y después **Finish**.
+
+<p align="center"><img src="images/install-6-finish.png" alt="Página final del instalador" width="520"></p>
 
 Abre una terminal nueva y ejecuta `asc --version`. Para quitarlo, usa **Configuración > Aplicaciones**. El instalador aún no está firmado, así que Windows SmartScreen puede mostrar **Windows protegió su PC**: elige **Más información** y después **Ejecutar de todas formas**.
 
@@ -230,7 +234,7 @@ Añade esto a `configurations` en `.vscode/launch.json`, pon un punto de interru
 
 <p align="center"><img src="https://raw.githubusercontent.com/Gaftherman/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code conectado a un script que asc ejecuta en el Símbolo del sistema, avanzando paso a paso por addBonus" width="720"></p>
 
-El depurador necesita AngelScript 2.36.0 o posterior (consulta [ENGINE_VERSIONS.md](ENGINE_VERSIONS.md)) y viene de [angelscript-dap](https://github.com/Gaftherman/angelscript-dap).
+El depurador necesita AngelScript 2.36.0 o posterior (consulta [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md)) y viene de [angelscript-dap](https://github.com/Gaftherman/angelscript-dap).
 
 ## Referencia
 
@@ -258,6 +262,18 @@ cmake --build --preset windows-x64
 ctest --preset windows-x64
 ~~~
 
+### JIT (opcional)
+
+El intérprete es lo predeterminado. Para compilar con el JIT [angelsea](https://github.com/asumagic/angelsea), que necesita AngelScript 2.37 o posterior y un destino de 64 bits (Windows o Linux x86-64) o arm64 (experimental), descarga sus dependencias y activa la opción:
+
+~~~sh
+git submodule update --init external/angelsea
+git -C external/angelsea submodule update --init vendor/mir vendor/fmt
+cmake --preset windows-x64 -DANGELSCRIPT_CLI_JIT=angelsea
+~~~
+
+`angelscript --version` termina entonces con `jit: angelsea`. `--no-jit` y las sesiones del depurador (`--dap-port`) siguen usando el intérprete. angelsea es software alfa; [la hoja de ruta](ROADMAP.md) lo compara con los otros JIT de AngelScript.
+
 ## Hoja de ruta
 
 [Gestión de paquetes y JIT](ROADMAP.md)
@@ -279,7 +295,7 @@ AngelScript CLI se apoya en el trabajo de estos proyectos. Sus licencias se repr
 
 ## Soporte
 
-Abre una [incidencia](https://github.com/Gaftherman/angelscript-cli/issues) para el programa de línea de comandos, los instaladores y las versiones del motor de [ENGINE_VERSIONS.md](ENGINE_VERSIONS.md). Incluye la salida de `angelscript --version`, tu sistema operativo y un script corto que reproduzca el problema. Los problemas del depurador van a [angelscript-dap](https://github.com/Gaftherman/angelscript-dap/issues) y los del editor a [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp/issues). Para ayudar, lee [CONTRIBUTING.es.md](CONTRIBUTING.es.md).
+Abre una [incidencia](https://github.com/Gaftherman/angelscript-cli/issues) para el programa de línea de comandos, los instaladores y las versiones del motor de [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md). Incluye la salida de `angelscript --version`, tu sistema operativo y un script corto que reproduzca el problema. Los problemas del depurador van a [angelscript-dap](https://github.com/Gaftherman/angelscript-dap/issues) y los del editor a [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp/issues). Para ayudar, lee [CONTRIBUTING.es.md](CONTRIBUTING.es.md).
 
 ## Proyectos relacionados
 

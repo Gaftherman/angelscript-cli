@@ -28,7 +28,7 @@ cmake --build --preset windows-x64
 ctest --preset windows-x64
 ~~~
 
-To check another AngelScript release, run `python scripts/engine-matrix.py --versions X.Y.Z` and refresh the table with `python scripts/engine-report.py`.
+The SDK fixes, the SHA-256 pins and the engine matrix live in [angelscript-engine](https://github.com/Gaftherman/angelscript-engine), checked out as `external/angelscript-engine`. To check another AngelScript release, run `python scripts/build-engine.py X.Y.Z`; if the release is new, pin it there first with `python external/angelscript-engine/scripts/prepare-sdk.py X.Y.Z --out build/sdk --pin`.
 
 ## Style
 

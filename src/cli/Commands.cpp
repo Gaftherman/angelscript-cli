@@ -54,9 +54,9 @@ static void PrintUsage(std::ostream& output)
 
 static void PrintVersion()
 {
-    runtime::NullJit jit;
+    const auto jit = runtime::CreateJitProvider();
     std::cout << "angelscript " ANGELSCRIPT_CLI_VERSION " (AngelScript " ANGELSCRIPT_VERSION_STRING
-                 ", jit: " << jit.Name() << ")\n";
+                 ", jit: " << jit->Name() << ")\n";
 }
 
 static int DumpPredefined()

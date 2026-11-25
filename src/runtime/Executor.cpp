@@ -79,13 +79,13 @@ static int RunEntryPoint(asIScriptContext& context, asIScriptFunction& entry)
 int Execute(const ExecutionRequest& request)
 {
     auto args = request.scriptArgs;
-    NullJit provider;
+    const auto provider = CreateJitProvider();
     auto engine = CreateEngine();
     if (!engine)
         return 1;
 
-    const auto policy = Decide({false, HostArchitecture(), request.noJit, request.dapPort.has_value()});
-    if (policy.enabled && !provider.Attach(*engine))
+    const auto policy = Decide({JitBuiltIn(), HostArchitecture(), request.noJit, request.dapPort.has_value()});
+    if (policy.enabled && !provider->Attach(*engine))
     {
         std::cerr << "Could not attach the JIT provider\n";
         return 1;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <angelscript.h>
+#include <memory>
 #include <string_view>
 
 namespace runtime
@@ -35,6 +36,7 @@ enum class Architecture
 {
     X86,
     X64,
+    Arm64,
     Other,
 };
 
@@ -57,6 +59,12 @@ struct JitPolicy
 /** @brief Identifies the architecture for which the CLI was compiled. */
 Architecture HostArchitecture();
 
-/** @brief Allows JIT only on x86 or x64 with a provider and without debugging or --no-jit. */
+/** @brief Allows JIT only on x86, x64 or arm64 with a provider and without debugging or --no-jit. */
 JitPolicy Decide(const JitInputs& inputs);
+
+/** @brief Reports whether this build includes a JIT compiler (ANGELSCRIPT_CLI_JIT in CMake). */
+bool JitBuiltIn();
+
+/** @brief Creates the JIT provider of this build: angelsea when it is built in, NullJit otherwise. */
+std::unique_ptr<JitProvider> CreateJitProvider();
 }

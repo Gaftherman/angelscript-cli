@@ -13,15 +13,20 @@ set(cli_core_cases hello args stdlib int-main void-main compile-error exception 
 # and so do portable builds of releases whose add-ons have no generic calling convention.
 set(cli_addon_cases filesystem datetime examples)
 set(cli_cases ${cli_core_cases})
-if(ANGELSCRIPT_CLI_ENGINE_NUMBER GREATER_EQUAL 23300 AND NOT cli_skipped_addons)
+if(ANGELSCRIPT_ENGINE_NUMBER GREATER_EQUAL 23300 AND NOT cli_skipped_addons)
     list(APPEND cli_cases ${cli_addon_cases})
+endif()
+set(cli_expected_jit unavailable)
+if(ANGELSCRIPT_CLI_JIT STREQUAL "angelsea")
+    set(cli_expected_jit angelsea)
 endif()
 foreach(integration_case IN LISTS cli_cases)
     add_test(NAME "cli-${integration_case}"
         COMMAND "${CMAKE_COMMAND}" "-DCLI=$<TARGET_FILE:angelscript-cli>" "-DCASE=${integration_case}"
                 "-DVERSION=${PROJECT_VERSION}"
-                "-DENGINE_VERSION=${ANGELSCRIPT_CLI_ENGINE_VERSION}"
-                "-DENGINE_NUMBER=${ANGELSCRIPT_CLI_ENGINE_NUMBER}"
+                "-DENGINE_VERSION=${ANGELSCRIPT_ENGINE_VERSION}"
+                "-DENGINE_NUMBER=${ANGELSCRIPT_ENGINE_NUMBER}"
+                "-DEXPECTED_JIT=${cli_expected_jit}"
                 -P "${CMAKE_CURRENT_SOURCE_DIR}/integration.cmake")
 endforeach()
 

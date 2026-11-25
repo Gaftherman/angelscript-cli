@@ -107,7 +107,7 @@ static void TestSubcommands()
 static void TestJitPolicy()
 {
     using runtime::Architecture;
-    for (const auto arch : {Architecture::X86, Architecture::X64, Architecture::Other})
+    for (const auto arch : {Architecture::X86, Architecture::X64, Architecture::Arm64, Architecture::Other})
         for (const bool provider : {false, true})
             for (const bool noJit : {false, true})
                 for (const bool dap : {false, true})

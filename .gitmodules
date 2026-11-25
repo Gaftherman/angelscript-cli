@@ -4,3 +4,9 @@
 [submodule "external/angelscript-dap"]
 	path = external/angelscript-dap
 	url = https://github.com/Gaftherman/angelscript-dap
+[submodule "external/angelsea"]
+	path = external/angelsea
+	url = https://github.com/asumagic/angelsea
+[submodule "external/angelscript-engine"]
+	path = external/angelscript-engine
+	url = https://github.com/Gaftherman/angelscript-engine
