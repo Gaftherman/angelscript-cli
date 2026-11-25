@@ -9,6 +9,8 @@ The CLI builds against any official release from [angelcode.com](https://www.ang
 
 2.22.0 to 2.22.2, 2.23.0, 2.26.0 and 2.26.1 return wrong float results or crash on Linux x64 because of their `as_callfunc_x64_gcc.cpp`. The extracted copy takes that file (and `as_callfunc.h` for 2.22) from the next point release, 2.23.1 or 2.26.2, and nothing else, so the engine stays the official one. 2.20.0, 2.20.1 and 2.31.0 crash in other places of the engine and are not patched; use 2.20.2, 2.21.0 or later, and 2.31.1.
 
+2.35.1 does not build with Clang (macOS, Linux with clang) because of `WRAP_MFN_PR` in its `aswrappedcall.h`. The extracted copy gets the Clang branch that 2.36.0 added to that macro, and nothing else.
+
 `angelscript --dump-predefined` needs 2.39.0 or later.
 
 | AngelScript | Support | Builds | Tests | Debugger (DAP) | Note |

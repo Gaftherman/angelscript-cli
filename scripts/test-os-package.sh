@@ -2,7 +2,7 @@
 # Installs a .deb or .pkg built by package-os.sh, checks the three commands, and removes it.
 # Needs root (or sudo) because both formats install system-wide.
 #
-#   sh scripts/test-os-package.sh dist/angelscript-cli-1.0.0-linux-x64.deb 1.0.0
+#   sh scripts/test-os-package.sh dist/angelscript-cli-1.1.0-linux-x64.deb 1.1.0
 set -eu
 
 fail() {

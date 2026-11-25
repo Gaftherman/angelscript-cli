@@ -109,6 +109,18 @@ SDK_FIXES = [
     ("angelscript/source/as_callfunc_x64_gcc.cpp", "jmp endcall \\n", "jmp Lendcall \\n"),
     ("angelscript/source/as_callfunc_x64_gcc.cpp", '"intret: \\n', '"Lintret: \\n'),
     ("angelscript/source/as_callfunc_x64_gcc.cpp", '"endcall: \\n', '"Lendcall: \\n'),
+    # aswrappedcall.h of 2.35 uses AS_METHOD_AMBIGUITY_CAST inside a template, which Clang rejects; 2.36.0 added this branch.
+    # The unindented #define only exists before 2.36, where the same line sits inside the #if.
+    (
+        "add_on/autowrapper/aswrappedcall.h",
+        r"(?m)^(#define WRAP_MFN_PR\(ClassType, name, Parameters, ReturnType\) asFUNCTION\(.*AS_METHOD_AMBIGUITY_CAST.*)$",
+        "#if defined(__clang__)\n"
+        "#define WRAP_MFN_PR(ClassType, name, Parameters, ReturnType) "
+        "asFUNCTION((::gw::Wrapper<ReturnType (ClassType::*)Parameters>::TMPL f< &ClassType::name >))\n"
+        "#else\n"
+        r"\1"
+        "\n#endif",
+    ),
 ]
 
 

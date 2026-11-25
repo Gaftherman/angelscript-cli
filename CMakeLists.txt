@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(angelscript-cli VERSION 1.0.0 LANGUAGES CXX)
+project(angelscript-cli VERSION 1.1.0 LANGUAGES CXX)
 
 option(ANGELSCRIPT_CLI_BUILD_TESTS "Build and register the CLI tests" ON)
 

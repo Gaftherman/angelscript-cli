@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-25
+
+### Added
+
+- Build against official AngelScript releases from 2.20 to 2.39 (`scripts/build-engine.py`) and publish a build for each supported engine with every release. `docs/ENGINE_VERSIONS.md` lists what each version supports.
+- Support section in the README and a contributing guide in English and Spanish.
+
+### Changed
+
+- The debugger core now comes from the [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) submodule (`external/angelscript-dap`).
+- Spanish README and third-party notices moved to `docs/`.
+
+### Fixed
+
+- Builds on Linux arm64: C++-only flags no longer reach the assembly sources.
+- Builds on macOS with the older engine releases: the clashing assembly labels are renamed in the extracted copy of the engine.
+- AngelScript 2.35.1 builds with Clang (macOS, Linux with clang); the extracted copy takes the Clang branch that 2.36.0 added to `WRAP_MFN_PR`.
+- AngelScript 2.22.0 to 2.22.2, 2.23.0, 2.26.0 and 2.26.1 no longer return wrong float results on Linux x64: their call-convention source is taken from the next point release.
+
 ## [1.0.0] - 2026-11-24
 
 First release.
@@ -27,5 +46,6 @@ First release.
 - `CONTRIBUTING.md` with a Spanish version, a Support section and a list of related projects in the READMEs. The Spanish README, the third-party notices and the roadmap live in `docs/`.
 - `angelscript --dump-predefined` prints every type and function a script sees as an `.as.predefined` stub, for the engine the binary was built with (2.39.0 or later).
 
-[Unreleased]: https://github.com/Gaftherman/angelscript-cli/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Gaftherman/angelscript-cli/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Gaftherman/angelscript-cli/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Gaftherman/angelscript-cli/releases/tag/v1.0.0

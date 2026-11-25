@@ -13,7 +13,7 @@ Hello, world!
 
 ### Windows
 
-Descarga `angelscript-cli-1.0.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo.
+Descarga `angelscript-cli-1.1.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo.
 
 1. Acepta la licencia.
 
@@ -35,12 +35,12 @@ Abre una terminal nueva y ejecuta `asc --version`. Para quitarlo, usa **Configur
 
 ### macOS
 
-Descarga `angelscript-cli-1.0.0-macos-arm64.pkg` (Apple silicon) o `angelscript-cli-1.0.0-macos-x64.pkg` (Intel) desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ábrelo. Se instala en `/usr/local/bin`. El paquete aún no está notarizado: si macOS lo bloquea, haz clic derecho y elige **Abrir**.
+Descarga `angelscript-cli-1.1.0-macos-arm64.pkg` (Apple silicon) o `angelscript-cli-1.1.0-macos-x64.pkg` (Intel) desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ábrelo. Se instala en `/usr/local/bin`. El paquete aún no está notarizado: si macOS lo bloquea, haz clic derecho y elige **Abrir**.
 
 ### Linux
 
 ~~~sh
-$ sudo apt install ./angelscript-cli-1.0.0-linux-x64.deb
+$ sudo apt install ./angelscript-cli-1.1.0-linux-x64.deb
 ~~~
 
 Usa `linux-arm64` en ARM. Para quitarlo, ejecuta `sudo apt remove angelscript-cli`.
@@ -55,7 +55,7 @@ Usa `linux-arm64` en ARM. Para quitarlo, ejecuta `sudo apt remove angelscript-cl
 $ curl -fsSL https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.sh | sh
 ~~~
 
-Abre una terminal nueva. Tres nombres ejecutan el mismo programa: `angelscript`, el corto `asc` y el anterior `angelscript-cli`. Para elegir una versión, define `ANGELSCRIPT_CLI_VERSION` en PowerShell o ejecuta `sh -s -- --version 1.0.0`. Para instalar a mano, extrae el archivo de [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
+Abre una terminal nueva. Tres nombres ejecutan el mismo programa: `angelscript`, el corto `asc` y el anterior `angelscript-cli`. Para elegir una versión, define `ANGELSCRIPT_CLI_VERSION` en PowerShell o ejecuta `sh -s -- --version 1.1.0`. Para instalar a mano, extrae el archivo de [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
 
 ## Inicio rápido
 
