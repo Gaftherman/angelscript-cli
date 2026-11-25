@@ -34,15 +34,26 @@ $distFull = (Resolve-Path -LiteralPath $dist).Path
 $engineArgs = @()
 if ($EngineDir) {
     $engineFull = (Resolve-Path -LiteralPath $EngineDir).Path
-    if (-not (Get-ChildItem -LiteralPath $engineFull -Filter "angelscript-*.exe")) { throw "No angelscript-<version>.exe in $engineFull" }
-    $versions = @(Get-ChildItem -LiteralPath $engineFull -Filter 'angelscript-*.exe' |
+    # One build per release: angelscript-<version>.exe, angelscript-<version>.json (what it supports) and, when a JIT
+    # build exists, angelscript-<version>-jit.exe.
+    $allAddons = @('string', 'array', 'dictionary', 'math', 'file', 'builder', 'helper', 'datetime', 'filesystem')
+    $releases = @(Get-ChildItem -LiteralPath $engineFull -Filter 'angelscript-*.exe' |
         ForEach-Object { $_.BaseName -replace '^angelscript-', '' } |
         Where-Object { $_ -match '^[0-9]+\.[0-9]+\.[0-9]+[a-z]?$' } |
         Sort-Object { [version]($_ -replace '[a-z]$', '') } -Descending)
-    if (-not $versions) { throw "No angelscript-<version>.exe in $engineFull" }
-    $engineArgs = @("/DEngineDir=$engineFull", "/DEngineList=$($versions -join ';')")
+    if (-not $releases) { throw "No angelscript-<version>.exe in $engineFull" }
+    $entries = foreach ($release in $releases) {
+        $jit = if (Test-Path -LiteralPath (Join-Path $engineFull "angelscript-$release-jit.exe")) { 1 } else { 0 }
+        $missing = @()
+        $info = Join-Path $engineFull "angelscript-$release.json"
+        if (Test-Path -LiteralPath $info) {
+            $present = @((Get-Content -Raw -LiteralPath $info | ConvertFrom-Json).addons)
+            $missing = @($allAddons | Where-Object { $_ -notin $present })
+        }
+        "$release|$jit|$($missing -join ',')"
+    }
+    $engineArgs = @("/DEngineDir=$engineFull", "/DEngineList=$($entries -join ';')")
 }
-
 & $Compiler @engineArgs "/DAppArch=$Arch" "/DAppVersion=$Version" "/DSourceExe=$binaryPath" "/DLicenseFile=$(Join-Path $root 'LICENSE')" `
     "/DNoticesFile=$(Join-Path $root 'docs/THIRD_PARTY_NOTICES.md')" "/DOutputDir=$distFull" `
     (Join-Path $root 'packaging\windows\angelscript.iss')

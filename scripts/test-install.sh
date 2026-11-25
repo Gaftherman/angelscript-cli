@@ -129,17 +129,45 @@ for _ in 1 2; do
     "$test_shell" "$installer" --prefix "$prefix" --uninstall
     assert_uninstalled
 done
-# An engine build installs next to the default one and only adds angelscript-<engine>.
-engine_asset=angelscript-cli-$expected_version-as2.39.0-${asset#angelscript-cli-$expected_version-}
-cp "$archive" "$work/$engine_asset"
-printf '%s  %s\n' "$(sha256sum < "$archive" | cut -d' ' -f1)" "$engine_asset" > "$work/engine-sums"
-"$test_shell" "$installer" --prefix "$prefix" --engine 2.39.0 --archive "$work/$engine_asset" --checksums "$work/engine-sums" --no-modify-path
-[ -x "$prefix/bin/angelscript-2.39.0" ] || fail 'The engine build was not linked.'
-[ ! -e "$prefix/bin/angelscript" ] || fail 'The engine build must not take over the default command.'
-"$prefix/bin/angelscript-2.39.0" --version | grep -q 'AngelScript 2.39.0' || fail 'The engine build reports another release.'
-if "$test_shell" "$installer" --prefix "$prefix" --engine 2.99.0 --version 9.9.9 --no-modify-path >/dev/null 2>&1; then
-    fail 'A missing prebuilt engine must fail.'
-fi
-"$test_shell" "$installer" --prefix "$prefix" --engine 2.39.0 --uninstall --no-modify-path
-[ ! -e "$prefix/bin/angelscript-2.39.0" ] || fail 'The engine link remained after uninstall.'
+# One release is installed at a time: --engine and --jit pick which prebuilt build replaces the installed one. A fake
+# curl serves a release that lists a plain build, two engine builds and two JIT builds, and logs what was requested.
+suffix=${asset#angelscript-cli-$expected_version-}
+serve=$work/serve
+mkdir -p "$serve" "$work/fake"
+: > "$serve/SHA256SUMS"
+for build in "" as2.39.0- as2.38.0- as2.39.0-jit- as2.38.0-jit-; do
+    name=angelscript-cli-$expected_version-$build$suffix
+    cp "$archive" "$serve/$name"
+    printf '%s  %s\n' "$(sha256sum < "$archive" | cut -d' ' -f1)" "$name" >> "$serve/SHA256SUMS"
+done
+cat > "$work/fake/curl" <<'SH'
+#!/bin/sh
+# usage: curl -fsSL <url> -o <file>
+url=$2
+out=$4
+printf '%s\n' "${url##*/}" >> "$TEST_CURL_LOG"
+[ -f "$TEST_SERVE/${url##*/}" ] || exit 22
+cp "$TEST_SERVE/${url##*/}" "$out"
+SH
+chmod +x "$work/fake/curl"
+install_with() {
+    : > "$work/curl.log"
+    TEST_SERVE=$serve TEST_CURL_LOG=$work/curl.log PATH="$work/fake:$PATH" \
+        "$test_shell" "$installer" --prefix "$prefix" --version "$expected_version" --no-modify-path "$@" > "$work/install.out" 2>&1
+}
+picked() { grep -v '^SHA256SUMS$' "$work/curl.log" | tail -n 1; }
+install_with --engine 2.38.0 || fail "--engine 2.38.0 failed: $(cat "$work/install.out")"
+[ "$(picked)" = "angelscript-cli-$expected_version-as2.38.0-$suffix" ] || fail "--engine 2.38.0 picked $(picked)"
+[ -x "$prefix/bin/angelscript" ] && [ -x "$prefix/bin/asc" ] || fail 'The chosen release must install the usual commands.'
+[ ! -e "$prefix/bin/angelscript-2.38.0" ] || fail 'The chosen release must replace the installed one, not sit next to it.'
+install_with --jit || fail "--jit failed: $(cat "$work/install.out")"
+[ "$(picked)" = "angelscript-cli-$expected_version-as2.39.0-jit-$suffix" ] || fail "--jit alone must pick the newest JIT build, not $(picked)"
+install_with --engine 2.38.0 --jit || fail "--engine 2.38.0 --jit failed: $(cat "$work/install.out")"
+[ "$(picked)" = "angelscript-cli-$expected_version-as2.38.0-jit-$suffix" ] || fail "--engine 2.38.0 --jit picked $(picked)"
+if install_with --engine 2.99.0; then fail 'A missing prebuilt engine must fail.'; fi
+grep -q 'build-engine.py 2.99.0' "$work/install.out" || fail 'The error must say how to build the release from source.'
+if install_with --engine 2.36.1 --jit; then fail 'A release without a JIT build must fail with --jit.'; fi
+grep -q -- '--jit' "$work/install.out" || fail 'The error must mention how to build the JIT from source.'
+"$test_shell" "$installer" --prefix "$prefix" --uninstall --no-modify-path
+[ ! -e "$prefix/bin/angelscript" ] || fail 'The commands remained after uninstall.'
 printf '%s\n' 'Offline POSIX installer test passed.'

@@ -38,12 +38,19 @@ endif()
 
 get_filename_component(root "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
 set(dist "${root}/dist")
-# ENGINE names a build against another official AngelScript release (angelscript-cli-<v>-as<engine>-...).
+# ENGINE names a build against a given official AngelScript release (angelscript-cli-<v>-as<engine>-...), and JIT=ON
+# marks one built with the angelscript-jit compiler (angelscript-cli-<v>-as<engine>-jit-...). A build against the
+# bundled release with neither is the plain package.
 if(DEFINED ENGINE AND NOT ENGINE STREQUAL "")
-    set(asset "angelscript-cli-${VERSION}-as${ENGINE}-${OS}-${ARCH}.${extension}")
+    set(asset_base "angelscript-cli-${VERSION}-as${ENGINE}")
+    if(JIT)
+        string(APPEND asset_base "-jit")
+    endif()
+    set(asset_base "${asset_base}-${OS}-${ARCH}")
 else()
-    set(asset "angelscript-cli-${VERSION}-${OS}-${ARCH}.${extension}")
+    set(asset_base "angelscript-cli-${VERSION}-${OS}-${ARCH}")
 endif()
+set(asset "${asset_base}.${extension}")
 file(MAKE_DIRECTORY "${dist}")
 file(LOCK "${dist}/.package.lock" GUARD PROCESS TIMEOUT 60)
 
@@ -74,5 +81,9 @@ list(JOIN sums "\n" sums_text)
 file(WRITE "${work}/SHA256SUMS" "${sums_text}\n")
 file(RENAME "${work}/${asset}" "${dist}/${asset}")
 file(RENAME "${work}/SHA256SUMS" "${manifest}")
+# What the build supports (AngelScript version, JIT, add-ons). The setup program shows it next to each release.
+if(EXISTS "${BUILD_DIR}/engine-info.json")
+    file(COPY_FILE "${BUILD_DIR}/engine-info.json" "${dist}/${asset_base}.json")
+endif()
 file(REMOVE_RECURSE "${work}")
 message(STATUS "Created ${dist}/${asset}")

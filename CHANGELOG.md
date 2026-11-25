@@ -3,6 +3,19 @@
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+## [1.2.0] - 2026-11-25
+### Added
+- The Windows setup installs one AngelScript release, like Python: one radio button per release (the newest is selected) that shows whether it has a JIT build and which add-ons it lacks, and a **Use the JIT compiler** checkbox under the releases that have one. Running the setup again replaces the installed release.
+- JIT builds of AngelScript 2.37, 2.38 and 2.39 (`angelscript-cli-<version>-as<release>-jit-<os>-<arch>`) on Windows x64, Linux x64 and arm64 and macOS arm64, attached to each release after the main assets.
+- `scripts/build-engine.py --jit`, and `--jit` / `ANGELSCRIPT_CLI_JIT` in `scripts/install.sh` and `scripts/install.ps1`.
+- `engine-info.json` in each build directory (release, JIT, add-ons) and `scripts/plan-engine-builds.py`, the list of releases and targets the engine workflow builds.
+- A `jit-hot` test: a hot function that indexes past the end of an array must raise the same exception, line and call stack with and without the JIT.
+### Changed
+- The JIT is [angelscript-jit](https://github.com/Gaftherman/angelscript-jit), a fork of angelsea (`external/angelscript-jit`, replacing `external/angelsea`). Upstream angelsea crashed on the `jit-hot` test: it dropped script exceptions raised by application functions.
+- The bundled (current) AngelScript release builds without `angelscript-engine`; the engine repository is only needed for older releases (`cmake/BundledAngelScript.cmake`).
+- `--engine` in the install scripts replaces the installed build instead of adding `angelscript-<release>` next to it, and `build-engine.py` accepts the bundled release.
+### Removed
+- The per-release `angelscript-<version>` commands of setup 1.1. The setup deletes them when it runs again.
 
 ## [1.1.0] - 2026-11-25
 

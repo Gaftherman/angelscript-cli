@@ -1,21 +1,22 @@
 name: JIT
 
-# Builds and tests the optional angelsea JIT (ANGELSCRIPT_CLI_JIT=angelsea). It is a separate workflow so that an
-# alpha-quality dependency never blocks CI or a release. The interpreter build is the one that ships.
+# Builds and tests the optional JIT (angelscript-jit, a fork of angelsea; ANGELSCRIPT_CLI_JIT=angelsea). It is a
+# separate workflow so that an alpha-quality dependency never blocks CI or a release. The interpreter build is the
+# default one, and the engine-builds workflow attaches the JIT builds to a release.
 on:
   push:
     branches: [main]
     paths:
       - CMakeLists.txt
       - src/runtime/**
-      - external/angelsea
+      - external/angelscript-jit
       - external/angelscript
       - .github/workflows/jit.yml
   pull_request:
     paths:
       - CMakeLists.txt
       - src/runtime/**
-      - external/angelsea
+      - external/angelscript-jit
       - external/angelscript
       - .github/workflows/jit.yml
   workflow_dispatch:
@@ -25,7 +26,7 @@ permissions:
 
 jobs:
   jit:
-    name: angelsea (${{ matrix.os }} ${{ matrix.arch }})
+    name: JIT (${{ matrix.os }} ${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     continue-on-error: ${{ matrix.experimental }}
@@ -42,7 +43,7 @@ jobs:
         with:
           submodules: true
       - name: Fetch the JIT dependencies
-        run: git -C external/angelsea submodule update --init vendor/mir vendor/fmt
+        run: git -C external/angelscript-jit submodule update --init vendor/mir vendor/fmt
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'

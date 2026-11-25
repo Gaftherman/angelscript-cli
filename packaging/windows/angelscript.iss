@@ -20,8 +20,11 @@
   #define OutputDir "."
 #endif
 ; Optional: /DAppArch=x86 builds the 32-bit setup (default x64).
-; Optional: /DEngineDir=<folder with angelscript-<version>.exe builds against other AngelScript releases> and
-; /DEngineList=<those versions separated by ;, newest first>. Each version becomes its own component.
+; Optional: /DEngineDir=<folder with angelscript-<version>[-jit].exe, one build per AngelScript release> and
+; /DEngineList=<entries separated by ;, newest first>. An entry is <version>|<jit>|<missing add-ons>, where <jit> is 1
+; when angelscript-<version>-jit.exe exists and <missing add-ons> lists, separated by commas, what the release lacks.
+; Each release becomes one radio button (the setup installs one release, like Python), and a release with a JIT build
+; gets a check box under it. Without /DEngineDir the setup installs SourceExe only.
 
 [Setup]
 AppId={{7F3C9A52-6B1E-4D8A-9C0F-2A5E4B7D1C38}
@@ -60,42 +63,109 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [CustomMessages]
 english.MainComponent=AngelScript command line (angelscript, asc)
-english.EnginesGroup=Builds against other AngelScript releases
+english.EnginesGroup=AngelScript release (choose one)
+english.Current=current
+english.JitNone=no JIT
+english.JitAvailable=JIT available
+english.AddonsAll=all add-ons
+english.AddonsMissing=without
+english.UseJit=Use the JIT compiler (experimental, 64-bit)
 spanish.MainComponent=Línea de comandos de AngelScript (angelscript, asc)
-spanish.EnginesGroup=Compilaciones con otras versiones de AngelScript
+spanish.EnginesGroup=Versión de AngelScript (elige una)
+spanish.Current=actual
+spanish.JitNone=sin JIT
+spanish.JitAvailable=JIT disponible
+spanish.AddonsAll=todos los add-ons
+spanish.AddonsMissing=sin
+spanish.UseJit=Usar el compilador JIT (experimental, 64 bits)
 
 #ifdef EngineDir
 #ifndef EngineList
-  #error Pass /DEngineList=<versions separated by ;> together with /DEngineDir
+  #error Pass /DEngineList=<entries separated by ;> together with /DEngineDir
 #endif
-; One component per engine version, newest first: engines\as2_38_0 installs angelscript-2.38.0.exe.
+; One radio button per release, newest first: engines\as2_38_0 installs the build of AngelScript 2.38.0 as
+; angelscript.exe, asc.exe and angelscript-cli.exe. engines\as2_38_0\jit selects the JIT variant of it.
 #define EngineRest ""
+#define EngineEntry ""
 #define EngineVersion ""
 #define EngineId ""
-#sub EmitEngineComponent
-  #expr EngineVersion = Copy(EngineRest, 1, Pos(";", EngineRest) - 1)
+#define EngineJit ""
+#define EngineMissing ""
+#define EngineIndex 0
+#define EngineTypes ""
+#define EngineNote ""
+#define EngineJitText ""
+#define EngineAddonsText ""
+#sub ParseEngineEntry
+  #expr EngineEntry = Copy(EngineRest, 1, Pos(";", EngineRest) - 1)
+  #expr EngineVersion = Copy(EngineEntry, 1, Pos("|", EngineEntry) - 1)
+  #expr EngineEntry = Copy(EngineEntry, Pos("|", EngineEntry) + 1)
+  #expr EngineJit = Copy(EngineEntry, 1, Pos("|", EngineEntry) - 1)
+  #expr EngineMissing = Copy(EngineEntry, Pos("|", EngineEntry) + 1)
   #expr EngineId = "as" + StringChange(EngineVersion, ".", "_")
-Name: "engines\{#EngineId}"; Description: "AngelScript {#EngineVersion} (angelscript-{#EngineVersion}.exe)"; Types: full custom
+#endsub
+#sub EmitEngineComponent
+  #expr ParseEngineEntry
+  ; Only the newest release belongs to the setup types, so it is the one a plain install gets. The others have no type
+  ; and are picked by hand, which also keeps the exclusive radio buttons from all being preselected.
+  #if EngineIndex == 0
+    #expr EngineTypes = " Types: full compact custom;"
+    #expr EngineNote = " ({cm:Current})"
+  #else
+    #expr EngineTypes = ""
+    #expr EngineNote = ""
+  #endif
+  #if EngineJit == "1"
+    #expr EngineJitText = "{cm:JitAvailable}"
+  #else
+    #expr EngineJitText = "{cm:JitNone}"
+  #endif
+  #if EngineMissing == ""
+    #expr EngineAddonsText = "{cm:AddonsAll}"
+  #else
+    #expr EngineAddonsText = "{cm:AddonsMissing} " + StringChange(EngineMissing, ",", ", ")
+  #endif
+Name: "engines\{#EngineId}"; Description: "AngelScript {#EngineVersion}{#EngineNote} - {#EngineJitText} - {#EngineAddonsText}";{#EngineTypes} Flags: exclusive
+  #if EngineJit == "1"
+Name: "engines\{#EngineId}\jit"; Description: "{cm:UseJit}"
+  #endif
+  #expr EngineIndex = EngineIndex + 1
 #endsub
 #sub EmitEngineFile
-  #expr EngineVersion = Copy(EngineRest, 1, Pos(";", EngineRest) - 1)
-  #expr EngineId = "as" + StringChange(EngineVersion, ".", "_")
-Source: "{#EngineDir}\angelscript-{#EngineVersion}.exe"; DestDir: "{app}"; Components: "engines\{#EngineId}"; Flags: ignoreversion
+  #expr ParseEngineEntry
+  #if EngineJit == "1"
+Source: "{#EngineDir}\angelscript-{#EngineVersion}.exe"; DestDir: "{app}"; DestName: "angelscript.exe"; Components: "engines\{#EngineId} and not engines\{#EngineId}\jit"; Flags: ignoreversion
+Source: "{#EngineDir}\angelscript-{#EngineVersion}.exe"; DestDir: "{app}"; DestName: "asc.exe"; Components: "engines\{#EngineId} and not engines\{#EngineId}\jit"; Flags: ignoreversion
+Source: "{#EngineDir}\angelscript-{#EngineVersion}.exe"; DestDir: "{app}"; DestName: "angelscript-cli.exe"; Components: "engines\{#EngineId} and not engines\{#EngineId}\jit"; Flags: ignoreversion
+Source: "{#EngineDir}\angelscript-{#EngineVersion}-jit.exe"; DestDir: "{app}"; DestName: "angelscript.exe"; Components: "engines\{#EngineId}\jit"; Flags: ignoreversion
+Source: "{#EngineDir}\angelscript-{#EngineVersion}-jit.exe"; DestDir: "{app}"; DestName: "asc.exe"; Components: "engines\{#EngineId}\jit"; Flags: ignoreversion
+Source: "{#EngineDir}\angelscript-{#EngineVersion}-jit.exe"; DestDir: "{app}"; DestName: "angelscript-cli.exe"; Components: "engines\{#EngineId}\jit"; Flags: ignoreversion
+  #else
+Source: "{#EngineDir}\angelscript-{#EngineVersion}.exe"; DestDir: "{app}"; DestName: "angelscript.exe"; Components: "engines\{#EngineId}"; Flags: ignoreversion
+Source: "{#EngineDir}\angelscript-{#EngineVersion}.exe"; DestDir: "{app}"; DestName: "asc.exe"; Components: "engines\{#EngineId}"; Flags: ignoreversion
+Source: "{#EngineDir}\angelscript-{#EngineVersion}.exe"; DestDir: "{app}"; DestName: "angelscript-cli.exe"; Components: "engines\{#EngineId}"; Flags: ignoreversion
+  #endif
 #endsub
 
 [Components]
 Name: "main"; Description: "{cm:MainComponent}"; Types: full compact custom; Flags: fixed
-Name: "engines"; Description: "{cm:EnginesGroup}"; Types: full custom
+Name: "engines"; Description: "{cm:EnginesGroup}"; Types: full compact custom; Flags: fixed
 #for {EngineRest = EngineList + ";"; EngineRest != ""; EngineRest = Copy(EngineRest, Pos(";", EngineRest) + 1)} EmitEngineComponent
 #endif
 
 [Tasks]
 Name: "addtopath"; Description: "Add AngelScript to the &PATH environment variable"; GroupDescription: "Environment:"
 
+[InstallDelete]
+; Setup 1.1 installed the other releases next to the default one as angelscript-<version>.exe. A setup installs one release now.
+Type: files; Name: "{app}\angelscript-2.*.exe"
+
 [Files]
+#ifndef EngineDir
 Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "angelscript.exe"; Flags: ignoreversion
 Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "asc.exe"; Flags: ignoreversion
 Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "angelscript-cli.exe"; Flags: ignoreversion
+#endif
 Source: "{#LicenseFile}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#NoticesFile}"; DestDir: "{app}"; Flags: ignoreversion
 #ifdef EngineDir

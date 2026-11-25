@@ -8,6 +8,8 @@ fail() {
 
 version=latest
 engine=${ANGELSCRIPT_ENGINE_VERSION-}
+jit=${ANGELSCRIPT_CLI_JIT:+yes}
+jit=${jit:-no}
 archive=
 checksums=
 prefix=$HOME/.local
@@ -25,6 +27,7 @@ while [ "$#" -gt 0 ]; do
                 --prefix) prefix=$2 ;;
             esac
             shift ;;
+        --jit) jit=yes ;;
         --no-modify-path) modify_path=no ;;
         --uninstall) uninstall=yes ;;
         *) fail "Unknown option: $1" ;;
@@ -46,14 +49,15 @@ fi
 if [ -d "$prefix" ]; then prefix=$(CDPATH='' cd -P "$prefix" && pwd -P); fi
 share=${prefix%/}/share
 bin=${prefix%/}/bin
-# An engine build installs next to the default one and only adds angelscript-<engine>.
+# One AngelScript release is installed at a time, like Python: --engine and --jit choose which build replaces the
+# installed one (same folder, same commands).
 case $engine in
-    '') install_dir=$share/angelscript-cli
-        command_names="angelscript asc angelscript-cli" ;;
+    '') ;;
     *[!0-9.]*) fail 'The engine must be an AngelScript version such as 2.35.1.' ;;
-    *) install_dir=$share/angelscript-cli-as$engine
-       command_names="angelscript-$engine" ;;
+    *) printf '%s\n' "$engine" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || fail 'The engine must be an AngelScript version such as 2.35.1.' ;;
 esac
+install_dir=$share/angelscript-cli
+command_names="angelscript asc angelscript-cli"
 program=$install_dir/angelscript
 
 # Quote the literal directory for use in both a shell pattern and an assignment.
@@ -199,14 +203,29 @@ if [ -z "$archive" ]; then
     else
         asset=angelscript-cli-$version-$os-$arch.tar.gz
     fi
-    if [ -n "$engine" ]; then
-        # Prebuilt engine builds are named angelscript-cli-<version>-as<engine>-<os>-<arch>.tar.gz.
-        if [ "$version" = latest ]; then
-            asset=$(sed -n "s/^[0-9a-fA-F]\{64\}  \(angelscript-cli-[0-9.]*-as$engine-$os-$arch[.]tar[.]gz\)\$/\1/p" "$checksums" | head -n 1)
-        else
-            asset=angelscript-cli-$version-as$engine-$os-$arch.tar.gz
-        fi
+    if [ -n "$engine" ] || [ "$jit" = yes ]; then
+        # Builds against a given release are listed as angelscript-cli-<cli>-as<engine>[-jit]-<os>-<arch>.tar.gz.
+        # With --jit alone, the newest release that has a JIT build is used.
+        if [ -n "$engine" ]; then engine_pattern=$(printf '%s' "$engine" | sed 's/[.]/[.]/g'); else engine_pattern='[0-9]+[.][0-9]+[.][0-9]+'; fi
+        if [ "$jit" = yes ]; then jit_part=-jit; else jit_part=; fi
+        pattern="^angelscript-cli-[0-9]+[.][0-9]+[.][0-9]+-as(${engine_pattern})${jit_part}-$os-${arch}[.]tar[.]gz\$"
+        asset=$(LC_ALL=C awk -v pattern="$pattern" '
+            length($1) == 64 && $1 ~ /^[[:xdigit:]]+$/ && NF == 2 && $2 ~ pattern {
+                name = $2
+                engine_version = $2
+                sub(/^angelscript-cli-[0-9]+[.][0-9]+[.][0-9]+-as/, "", engine_version)
+                sub(/(-jit)?-(linux|macos)-(x64|x86|arm64)[.]tar[.]gz$/, "", engine_version)
+                split(engine_version, part, ".")
+                rank = part[1] * 1000000 + part[2] * 1000 + part[3]
+                if (rank >= best) { best = rank; best_name = name }
+            }
+            END { if (best_name != "") print best_name }
+        ' "$checksums")
         if [ -z "$asset" ] || ! download "$base/$asset" "$work/$asset" 2>/dev/null; then
+            wanted="AngelScript ${engine:-releases}"
+            if [ "$jit" = yes ]; then
+                fail "No prebuilt build of $wanted with the JIT for $os $arch in this release. Build it from source with: python scripts/build-engine.py <version> --jit (the JIT needs AngelScript 2.37 or later and a 64-bit system)."
+            fi
             fail "No prebuilt build for AngelScript $engine. Build it from source with: python scripts/build-engine.py $engine"
         fi
     fi

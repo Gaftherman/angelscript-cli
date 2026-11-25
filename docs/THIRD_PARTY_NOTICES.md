@@ -315,7 +315,7 @@ SOFTWARE.
 
 ## angelsea
 
-https://github.com/asumagic/angelsea
+https://github.com/asumagic/angelsea (used through the fork https://github.com/Gaftherman/angelscript-jit)
 
 Optional JIT compiler for AngelScript, built into the CLI only with `-DANGELSCRIPT_CLI_JIT=angelsea`.
 

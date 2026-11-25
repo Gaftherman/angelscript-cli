@@ -42,6 +42,12 @@ elseif(CASE STREQUAL "exception")
     check_cli(1 "^$"
         "Unhandled exception: Index out of bounds\n  at int fail\\(\\) \\([^\n]+exception\\.as:[0-9]+\\)\n  at void main\\(\\) \\([^\n]+exception\\.as:[0-9]+\\)"
         "${fixtures}/exception.as")
+elseif(CASE STREQUAL "jit-hot")
+    # The function is hot by the time it fails, so a JIT build runs it as native code. The exception, its line and the
+    # call stack must be the ones the interpreter reports.
+    check_cli(1 "^$"
+        "Unhandled exception: Index out of bounds\n  at int sum\\(int\\[\\]@, int\\) \\([^\n]+jit-hot\\.as:6\\)\n  at int main\\(\\) \\([^\n]+jit-hot\\.as:15\\)"
+        "${fixtures}/jit-hot.as")
 elseif(CASE STREQUAL "check-ok")
     check_cli(0 "^$" "^$" --check "${fixtures}/check-only.as")
     check_cli(0 "^$" "^$" check "${fixtures}/check-only.as")

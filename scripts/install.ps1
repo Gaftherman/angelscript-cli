@@ -1,6 +1,7 @@
 param(
     [string]$Version = $env:ANGELSCRIPT_CLI_VERSION,
     [string]$Engine = $env:ANGELSCRIPT_ENGINE_VERSION,
+    [switch]$Jit = [bool]$env:ANGELSCRIPT_CLI_JIT,
     [string]$Archive,
     [string]$Checksums,
     [string]$InstallDir = $env:ANGELSCRIPT_CLI_INSTALL_DIR,
@@ -103,16 +104,16 @@ public static extern System.IntPtr SendMessageTimeout(
     if ($Engine -and $Engine -cnotmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
         throw 'The engine must be an AngelScript version such as 2.35.1.'
     }
-    # An engine build installs on its own and only adds angelscript-<engine>.exe, so the default stays untouched.
-    $dirName = if ($Engine) { "angelscript-cli-as$Engine" } else { 'angelscript-cli' }
-    if (-not $InstallDir) { $InstallDir = Join-Path $env:LOCALAPPDATA "Programs\$dirName" }
+    # One AngelScript release is installed at a time, like Python: -Engine and -Jit choose which build replaces the
+    # installed one (same folder, same commands).
+    if (-not $InstallDir) { $InstallDir = Join-Path $env:LOCALAPPDATA 'Programs\angelscript-cli' }
     $InstallDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($InstallDir)
     $InstallDir = $InstallDir.TrimEnd('\', '/')
     $parent = [IO.Path]::GetDirectoryName($InstallDir)
     if (-not $parent -or $InstallDir.Contains(';')) { throw 'Choose an install directory below the drive root with no semicolons.' }
 
     $packageFiles = @('angelscript.exe', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'README.md')
-    $aliasFiles = if ($Engine) { @("angelscript-$Engine.exe") } else { @('asc.exe', 'angelscript-cli.exe') }
+    $aliasFiles = @('asc.exe', 'angelscript-cli.exe')
     $existing = Get-Item -LiteralPath $InstallDir -Force -ErrorAction SilentlyContinue
     if ($existing) {
         if (-not $existing.PSIsContainer -or ($existing.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
@@ -126,7 +127,7 @@ public static extern System.IntPtr SendMessageTimeout(
     }
     if ($Uninstall) {
         if ($existing) { Remove-Item -LiteralPath $InstallDir -Recurse -Force }
-        if (-not $NoPath -and -not $Engine) { Update-UserPath $InstallDir $true }
+        if (-not $NoPath) { Update-UserPath $InstallDir $true }
         Write-Output 'Uninstalled angelscript. Open a new terminal to pick up the PATH change.'
         return
     }
@@ -169,17 +170,26 @@ public static extern System.IntPtr SendMessageTimeout(
             } else {
                 $asset = "angelscript-cli-$Version-windows-$platform.zip"
             }
-            if ($Engine) {
-                if ($Version -eq 'latest') {
-                    $engineAssets = @(foreach ($line in (Get-Content -LiteralPath $Checksums)) {
-                        if ($line -cmatch ('^[a-fA-F0-9]{64}  (angelscript-cli-[0-9]+\.[0-9]+\.[0-9]+-as' + [regex]::Escape($Engine) + '-windows-' + $platform + '\.zip)$')) { $Matches[1] }
-                    })
-                    $asset = if ($engineAssets.Count -eq 1) { $engineAssets[0] } else { '' }
-                } else {
-                    $asset = "angelscript-cli-$Version-as$Engine-windows-$platform.zip"
-                }
-                if (-not $asset -or $asset -notin (Get-Content -LiteralPath $Checksums | ForEach-Object { ($_ -split '  ', 2)[-1] })) {
-                    throw "No prebuilt build for AngelScript $Engine. Build it from source with: python scripts/build-engine.py $Engine"
+            if ($Engine -or $Jit) {
+                # Builds against a given release are listed as angelscript-cli-<cli>-as<engine>[-jit]-windows-<arch>.zip.
+                # With -Jit alone, the newest release that has a JIT build is used.
+                $engineName = if ($Engine) { [regex]::Escape($Engine) } else { '[0-9]+\.[0-9]+\.[0-9]+' }
+                $jitName = if ($Jit) { '-jit' } else { '' }
+                $engineAssets = @(foreach ($line in (Get-Content -LiteralPath $Checksums)) {
+                    if ($line -cmatch ('^[a-fA-F0-9]{64}  (angelscript-cli-[0-9]+\.[0-9]+\.[0-9]+-as(' + $engineName + ')' + $jitName + '-windows-' + $platform + '\.zip)$')) {
+                        [pscustomobject]@{ Name = $Matches[1]; Engine = [version]$Matches[2] }
+                    }
+                })
+                $asset = if ($engineAssets.Count) { ($engineAssets | Sort-Object Engine -Descending | Select-Object -First 1).Name } else { '' }
+                if (-not $asset) {
+                    $wanted = if ($Engine) { "AngelScript $Engine" } else { 'AngelScript' }
+                    if ($Jit) {
+                        $wanted += ' with the JIT'
+                        $hint = 'Build it from source with: python scripts/build-engine.py <version> --jit (the JIT needs AngelScript 2.37 or later and a 64-bit system).'
+                    } else {
+                        $hint = "Build it from source with: python scripts/build-engine.py $Engine"
+                    }
+                    throw "No prebuilt build of $wanted for Windows $platform in this release. $hint"
                 }
             }
             $zipPath = Join-Path $work $asset
@@ -220,14 +230,9 @@ public static extern System.IntPtr SendMessageTimeout(
         foreach ($alias in $aliasFiles) {
             Copy-Item -LiteralPath (Join-Path $InstallDir 'angelscript.exe') -Destination (Join-Path $InstallDir $alias)
         }
-        if ($Engine) {
-            Get-InstalledVersion $InstallDir
-            Write-Output "Run $(Join-Path $InstallDir "angelscript-$Engine.exe")"
-        } else {
-            if (-not $NoPath) { Update-UserPath $InstallDir $false }
-            Get-InstalledVersion $InstallDir
-            Write-Output 'Open a new terminal to pick up the PATH change.'
-        }
+        if (-not $NoPath) { Update-UserPath $InstallDir $false }
+        Get-InstalledVersion $InstallDir
+        Write-Output 'Open a new terminal to pick up the PATH change.'
     } finally {
         if ($keepBackup) {
             Write-Warning "The previous installation could not be restored. It is at $backup."

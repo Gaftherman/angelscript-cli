@@ -1,9 +1,10 @@
 name: Engine builds
 
-# Builds the CLI against the official AngelScript releases it supports, on every target, and attaches the
-# results to a published release. This workflow never blocks CI or a release: the base assets are already out
-# when it runs, and a failed engine job only leaves that build out.
-# Run it by hand for an existing release with: Actions > Engine builds > Run workflow > tag.
+# Builds the CLI against every AngelScript release it supports (and, from 2.37, with the JIT), on every target, and
+# attaches the results to a published release. This workflow never blocks CI or a release: the base assets are
+# already out when it runs, and a failed job only leaves that build out of the release and the setup program.
+# The matrix comes from scripts/plan-engine-builds.py. Run it by hand for an existing release with:
+# Actions > Engine builds > Run workflow > tag.
 on:
   release:
     types: [published]
@@ -19,65 +20,78 @@ on:
       - CMakeLists.txt
       - cmake/**
       - scripts/build-engine.py
+      - scripts/plan-engine-builds.py
       - scripts/package*
+      - packaging/**
       - external/angelscript-engine
+      - external/angelscript-jit
       - .github/workflows/engine-builds.yml
   pull_request:
     paths:
       - CMakeLists.txt
       - cmake/**
       - scripts/build-engine.py
+      - scripts/plan-engine-builds.py
       - external/angelscript-engine
+      - external/angelscript-jit
       - .github/workflows/engine-builds.yml
-
 permissions:
   contents: read
-
 jobs:
+  plan:
+    name: Plan the builds
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag || github.ref }}
+      - id: plan
+        run: echo "matrix=$(python3 scripts/plan-engine-builds.py)" >> "$GITHUB_OUTPUT"
   engines:
-    name: Engine ${{ matrix.engine }} (${{ matrix.target.os }} ${{ matrix.target.arch }})
-    runs-on: ${{ matrix.target.runner }}
-    timeout-minutes: 30
+    name: Engine ${{ matrix.name }} (${{ matrix.os }} ${{ matrix.arch }})
+    needs: plan
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
     strategy:
       fail-fast: false
-      matrix:
-        engine: ['2.38.0', '2.37.0', '2.36.1', '2.35.1', '2.33.0', '2.30.2']
-        target:
-          - {runner: windows-latest, os: windows, arch: x64, msvc: x64, toolchain: ''}
-          - {runner: windows-latest, os: windows, arch: x86, msvc: amd64_x86, toolchain: ''}
-          - {runner: ubuntu-24.04, os: linux, arch: x64, msvc: x64, toolchain: ''}
-          - {runner: ubuntu-24.04, os: linux, arch: x86, msvc: x64, toolchain: cmake/linux-x86.cmake}
-          - {runner: ubuntu-24.04-arm, os: linux, arch: arm64, msvc: x64, toolchain: ''}
-          - {runner: macos-15, os: macos, arch: arm64, msvc: x64, toolchain: ''}
-          - {runner: macos-15-intel, os: macos, arch: x64, msvc: x64, toolchain: ''}
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name || inputs.tag || github.ref }}
           submodules: true
+      - name: Fetch the JIT dependencies
+        if: matrix.jit
+        run: git -C external/angelscript-jit submodule update --init vendor/mir vendor/fmt
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - uses: ilammy/msvc-dev-cmd@v1
         if: runner.os == 'Windows'
         with:
-          arch: ${{ matrix.target.msvc }}
+          arch: ${{ matrix.msvc }}
       - name: Install 32-bit toolchain
-        if: matrix.target.os == 'linux' && matrix.target.arch == 'x86'
+        if: matrix.os == 'linux' && matrix.arch == 'x86'
         run: sudo apt-get update && sudo apt-get install -y g++-multilib
-      - name: Build against the official release
+      - name: Build against the release
         shell: pwsh
         env:
-          TOOLCHAIN: ${{ matrix.target.toolchain }}
+          TOOLCHAIN: ${{ matrix.toolchain }}
+          JIT_FLAG: ${{ matrix.jit && '--jit' || '' }}
         run: |
           if ($env:TOOLCHAIN) { $env:CMAKE_TOOLCHAIN_FILE = Join-Path $PWD $env:TOOLCHAIN }
           python -m pip install ninja
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/build-engine.py ${{ matrix.engine }} --prefix build/engine/out --work build/engine
-      - name: Smoke test the built engine
+          $arguments = @('${{ matrix.engine }}', '--prefix', 'build/engine/out', '--work', 'build/engine')
+          if ($env:JIT_FLAG) { $arguments += $env:JIT_FLAG }
+          python scripts/build-engine.py @arguments
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Smoke test the build
         shell: pwsh
         run: |
-          $binary = "build/engine/build/${{ matrix.engine }}/bin/angelscript"
+          $binary = "build/engine/build/${{ matrix.name }}/bin/angelscript"
           if (Test-Path "$binary.exe") { $binary = "$binary.exe" }
           & $binary --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -85,23 +99,33 @@ jobs:
               & $binary "examples/$script.as"
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
+      - name: Smoke test the JIT
+        if: matrix.jit
+        shell: pwsh
+        run: |
+          $binary = "build/engine/build/${{ matrix.name }}/bin/angelscript"
+          if (Test-Path "$binary.exe") { $binary = "$binary.exe" }
+          if ((& $binary --version) -notmatch 'jit: angelsea') { throw 'The build does not report the JIT.' }
+          # A hot function that indexes past the end of an array must raise the script exception the interpreter raises.
+          $output = & $binary tests/fixtures/jit-hot.as 2>&1 | Out-String
+          if ($LASTEXITCODE -ne 1 -or $output -notmatch 'Unhandled exception: Index out of bounds') { throw "Unexpected result from the JIT: $output" }
       - name: Package
         shell: pwsh
         run: |
           $version = (Select-String -Path CMakeLists.txt -Pattern 'project\(angelscript-cli VERSION ([0-9.]+)').Matches[0].Groups[1].Value
-          cmake "-DBUILD_DIR=build/engine/build/${{ matrix.engine }}" "-DCONFIG=Release" "-DVERSION=$version" "-DOS=${{ matrix.target.os }}" "-DARCH=${{ matrix.target.arch }}" "-DENGINE=${{ matrix.engine }}" -P scripts/package.cmake
+          $jit = if ('${{ matrix.jit }}' -eq 'true') { 'ON' } else { 'OFF' }
+          cmake "-DBUILD_DIR=build/engine/build/${{ matrix.name }}" "-DCONFIG=Release" "-DVERSION=$version" "-DOS=${{ matrix.os }}" "-DARCH=${{ matrix.arch }}" "-DENGINE=${{ matrix.engine }}" "-DJIT=$jit" -P scripts/package.cmake
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         with:
-          name: angelscript-cli-engine-${{ matrix.engine }}-${{ matrix.target.os }}-${{ matrix.target.arch }}
+          name: angelscript-cli-engine-${{ matrix.name }}-${{ matrix.os }}-${{ matrix.arch }}
           path: |
-            dist/*-as${{ matrix.engine }}-*
+            dist/*-as${{ matrix.name }}-*
             dist/SHA256SUMS
           if-no-files-found: error
           compression-level: 0
-
   setup-with-engines:
-    name: Windows ${{ matrix.arch }} setup with engine builds
+    name: Windows ${{ matrix.arch }} setup with every release
     needs: engines
     if: ${{ !cancelled() && (github.event.release.tag_name || inputs.tag) }}
     runs-on: windows-latest
@@ -125,29 +149,33 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup --no-progress -y }
-      - name: Build and test the setup program with the engine builds
+      - name: Build and test the setup program
         shell: pwsh
         run: |
           gh release download $env:TAG --repo "${{ github.repository }}" --pattern 'angelscript-cli-*-windows-${{ matrix.arch }}.zip' --dir base
-          $zip = Get-ChildItem base -Filter 'angelscript-cli-*-windows-${{ matrix.arch }}.zip' | Select-Object -First 1
+          $zip = Get-ChildItem base -Filter 'angelscript-cli-*-windows-${{ matrix.arch }}.zip' | Where-Object { $_.Name -notmatch '-as[0-9]' } | Select-Object -First 1
           $version = [regex]::Match($zip.Name, '^angelscript-cli-([0-9.]+)-windows-${{ matrix.arch }}\.zip$').Groups[1].Value
           Expand-Archive $zip.FullName -DestinationPath main
           New-Item -ItemType Directory -Force engines | Out-Null
+          # One folder entry per build: angelscript-<release>[-jit].exe plus the .json that says what it supports.
           foreach ($archive in Get-ChildItem parts -Recurse -Filter 'angelscript-cli-*-as*-windows-${{ matrix.arch }}.zip') {
-              $engine = [regex]::Match($archive.Name, '-as([0-9.]+)-windows-${{ matrix.arch }}').Groups[1].Value
-              $folder = "unpack-$engine"
-              Expand-Archive $archive.FullName -DestinationPath $folder
-              Copy-Item "$folder/angelscript.exe" "engines/angelscript-$engine.exe"
+              $match = [regex]::Match($archive.BaseName, '-as([0-9.]+[a-z]?)(-jit)?-windows-${{ matrix.arch }}$')
+              $name = "$($match.Groups[1].Value)$($match.Groups[2].Value)"
+              Expand-Archive $archive.FullName -DestinationPath "unpack-$name"
+              Copy-Item "unpack-$name/angelscript.exe" "engines/angelscript-$name.exe"
+              $info = Join-Path $archive.DirectoryName "$($archive.BaseName).json"
+              if (Test-Path $info) { Copy-Item $info "engines/angelscript-$name.json" }
           }
           ./scripts/package-installer.ps1 -Binary main/angelscript.exe -Version $version -EngineDir engines -Arch ${{ matrix.arch }}
-          ./scripts/test-installer.ps1 -Setup "dist/angelscript-cli-$version-windows-${{ matrix.arch }}-setup.exe" -Version $version
+          $releases = @(Get-ChildItem engines -Filter 'angelscript-*.exe' | ForEach-Object { $_.BaseName -replace '^angelscript-', '' } | Where-Object { $_ -match '^[0-9.]+$' } | Sort-Object { [version]$_ } -Descending)
+          $jitReleases = @(Get-ChildItem engines -Filter 'angelscript-*-jit.exe' | ForEach-Object { $_.BaseName -replace '^angelscript-|-jit$', '' })
+          ./scripts/test-installer.ps1 -Setup "dist/angelscript-cli-$version-windows-${{ matrix.arch }}-setup.exe" -Version $version -Releases $releases -JitReleases $jitReleases
       - uses: actions/upload-artifact@v4
         with:
           name: angelscript-cli-setup-windows-${{ matrix.arch }}
           path: dist/*-setup.exe
           if-no-files-found: error
           compression-level: 0
-
   publish:
     name: Attach the builds to the release
     needs: [engines, setup-with-engines]
@@ -177,8 +205,9 @@ jobs:
           rm -f SHA256SUMS
           ls
           gh release download "$TAG" --repo "${{ github.repository }}" --pattern SHA256SUMS --dir old
-          # The setup programs with the engine components replace the plain ones of the same name.
-          names=$(ls | grep -E '^angelscript-cli-' || true)
+          # The setup programs with every release replace the plain ones of the same name. The .json files describe a
+          # build for the setup program and stay out of the release.
+          names=$(ls | grep -E '^angelscript-cli-.*[.](zip|tar[.]gz|exe)$' || true)
           test -n "$names" || { echo "No engine builds to attach"; exit 0; }
           { grep -v -F -f <(for n in $names; do echo "  $n"; done) old/SHA256SUMS || true; sha256sum $names; } | sort -k2 > SHA256SUMS
           gh release upload "$TAG" --repo "${{ github.repository }}" --clobber $names SHA256SUMS

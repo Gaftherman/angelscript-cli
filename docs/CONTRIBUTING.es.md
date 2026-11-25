@@ -28,7 +28,7 @@ cmake --build --preset windows-x64
 ctest --preset windows-x64
 ~~~
 
-Los parches del SDK, los hashes SHA-256 y la matriz de motores viven en [angelscript-engine](https://github.com/Gaftherman/angelscript-engine), que se clona en `external/angelscript-engine`. Para comprobar otra versión de AngelScript, ejecuta `python scripts/build-engine.py X.Y.Z`; si la versión es nueva, fíjala primero allí con `python external/angelscript-engine/scripts/prepare-sdk.py X.Y.Z --out build/sdk --pin`.
+Los parches del SDK, los hashes SHA-256 y la matriz de motores viven en [angelscript-engine](https://github.com/Gaftherman/angelscript-engine), que se clona en `external/angelscript-engine`. Para comprobar otra versión de AngelScript, ejecuta `python scripts/build-engine.py X.Y.Z`; si la versión es nueva, fíjala primero allí con `python external/angelscript-engine/scripts/prepare-sdk.py X.Y.Z --out build/sdk --pin`. La versión incluida (`external/angelscript`, la actual) se compila tal cual y no necesita ese repositorio. El JIT es [angelscript-jit](https://github.com/Gaftherman/angelscript-jit), que se clona en `external/angelscript-jit`; `python scripts/build-engine.py X.Y.Z --jit` compila una versión con él, y `scripts/plan-engine-builds.py` lista las versiones y destinos que compila el workflow de engines.
 
 ## Estilo
 

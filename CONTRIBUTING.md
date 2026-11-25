@@ -28,7 +28,7 @@ cmake --build --preset windows-x64
 ctest --preset windows-x64
 ~~~
 
-The SDK fixes, the SHA-256 pins and the engine matrix live in [angelscript-engine](https://github.com/Gaftherman/angelscript-engine), checked out as `external/angelscript-engine`. To check another AngelScript release, run `python scripts/build-engine.py X.Y.Z`; if the release is new, pin it there first with `python external/angelscript-engine/scripts/prepare-sdk.py X.Y.Z --out build/sdk --pin`.
+The SDK fixes, the SHA-256 pins and the engine matrix live in [angelscript-engine](https://github.com/Gaftherman/angelscript-engine), checked out as `external/angelscript-engine`. To check another AngelScript release, run `python scripts/build-engine.py X.Y.Z`; if the release is new, pin it there first with `python external/angelscript-engine/scripts/prepare-sdk.py X.Y.Z --out build/sdk --pin`. The bundled release (`external/angelscript`, the current one) builds as it is and does not need that repository. The JIT is [angelscript-jit](https://github.com/Gaftherman/angelscript-jit), checked out as `external/angelscript-jit`; `python scripts/build-engine.py X.Y.Z --jit` builds a release with it, and `scripts/plan-engine-builds.py` lists the releases and targets that the engine workflow builds.
 
 ## Style
 

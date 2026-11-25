@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(angelscript-cli VERSION 1.1.0 LANGUAGES CXX)
+project(angelscript-cli VERSION 1.2.0 LANGUAGES CXX)
 
 option(ANGELSCRIPT_CLI_BUILD_TESTS "Build and register the CLI tests" ON)
 
@@ -10,12 +10,23 @@ set(ANGELSCRIPT_ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/angelscript-eng
 set(ASDEBUGGER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/angelscript-dap"
     CACHE PATH "Checkout of angelscript-dap (the host-agnostic DAP core)")
 if(NOT EXISTS "${ANGELSCRIPT_SDK}/angelscript/include/angelscript.h"
-   OR NOT EXISTS "${ASDEBUGGER_DIR}/src/as_debugger_host.h"
-   OR NOT EXISTS "${ANGELSCRIPT_ENGINE_DIR}/cmake/AngelScriptEngine.cmake")
-    message(FATAL_ERROR "The AngelScript SDK, the debugger core (angelscript-dap) and angelscript-engine must be present in external/.")
+   OR NOT EXISTS "${ASDEBUGGER_DIR}/src/as_debugger_host.h")
+    message(FATAL_ERROR "The AngelScript SDK and the debugger core (angelscript-dap) must be present in external/.")
 endif()
 
-include("${ANGELSCRIPT_ENGINE_DIR}/cmake/AngelScriptEngine.cmake")
+# The bundled SDK is the current official release and builds as it is. Any other SDK is an older release that
+# angelscript-engine prepares (download, hash check, patches) and builds.
+get_filename_component(bundled_sdk "${CMAKE_CURRENT_SOURCE_DIR}/external/angelscript/sdk" REALPATH)
+get_filename_component(requested_sdk "${ANGELSCRIPT_SDK}" REALPATH)
+if(requested_sdk STREQUAL bundled_sdk)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/BundledAngelScript.cmake")
+else()
+    if(NOT EXISTS "${ANGELSCRIPT_ENGINE_DIR}/cmake/AngelScriptEngine.cmake")
+        message(FATAL_ERROR "Building another AngelScript release needs angelscript-engine: "
+                            "git submodule update --init external/angelscript-engine")
+    endif()
+    include("${ANGELSCRIPT_ENGINE_DIR}/cmake/AngelScriptEngine.cmake")
+endif()
 
 # The debugger core needs the context and function introspection API of 2.36 and later.
 set(ANGELSCRIPT_CLI_HAS_DAP OFF)
@@ -152,8 +163,10 @@ if(WIN32)
     target_link_libraries(angelscript-cli PRIVATE ws2_32)
 endif()
 
-# Optional JIT compiler. angelsea (BSD-2) turns script bytecode into native code through MIR. It uses the
-# asIJITCompilerV2 interface of AngelScript 2.37 and later and runs on 64-bit x86 (Windows, Linux) and arm64.
+# Optional JIT compiler: angelscript-jit, a fork of angelsea (BSD-2). It turns script bytecode into native code through
+# MIR and uses the asIJITCompilerV2 interface of AngelScript 2.37 and later, on 64-bit x86 (Windows, Linux) and arm64.
+set(ANGELSCRIPT_JIT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/angelscript-jit"
+    CACHE PATH "Checkout of angelscript-jit (the JIT compiler)")
 set(ANGELSCRIPT_CLI_JIT "none" CACHE STRING "JIT compiler to build in: none or angelsea")
 set_property(CACHE ANGELSCRIPT_CLI_JIT PROPERTY STRINGS none angelsea)
 if(ANGELSCRIPT_CLI_JIT STREQUAL "angelsea")
@@ -165,14 +178,14 @@ if(ANGELSCRIPT_CLI_JIT STREQUAL "angelsea")
        OR (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$"))
         message(FATAL_ERROR "ANGELSCRIPT_CLI_JIT=angelsea supports 64-bit Windows and Linux on x86-64, and arm64 on Linux and macOS (not 32-bit x86, not macOS x64).")
     endif()
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/angelsea/vendor/mir/mir.h"
-       OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/angelsea/vendor/fmt/CMakeLists.txt")
-        message(FATAL_ERROR "Run: git submodule update --init external/angelsea && git -C external/angelsea submodule update --init vendor/mir vendor/fmt")
+    if(NOT EXISTS "${ANGELSCRIPT_JIT_DIR}/vendor/mir/mir.h"
+       OR NOT EXISTS "${ANGELSCRIPT_JIT_DIR}/vendor/fmt/CMakeLists.txt")
+        message(FATAL_ERROR "Run: git submodule update --init external/angelscript-jit && git -C external/angelscript-jit submodule update --init vendor/mir vendor/fmt")
     endif()
     enable_language(C)
     set(ASEA_ANGELSCRIPT_SYSTEM ON CACHE BOOL "" FORCE)
     set(ASEA_ANGELSCRIPT_ROOT "${ANGELSCRIPT_SDK}" CACHE STRING "" FORCE)
-    add_subdirectory(external/angelsea angelsea EXCLUDE_FROM_ALL)
+    add_subdirectory("${ANGELSCRIPT_JIT_DIR}" angelscript-jit EXCLUDE_FROM_ALL)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(angelscript PRIVATE -fno-strict-aliasing)
     endif()
@@ -182,6 +195,34 @@ if(ANGELSCRIPT_CLI_JIT STREQUAL "angelsea")
 elseif(NOT ANGELSCRIPT_CLI_JIT STREQUAL "none")
     message(FATAL_ERROR "ANGELSCRIPT_CLI_JIT must be none or angelsea.")
 endif()
+
+# What this build supports, for the installer and the release notes (scripts/package.cmake copies it).
+set(engine_info_addons string array dictionary math file builder helper)
+foreach(define IN LISTS cli_optional_addons)
+    if(define MATCHES "^ANGELSCRIPT_CLI_HAS_(DATETIME|FILESYSTEM)=1$")
+        string(TOLOWER "${CMAKE_MATCH_1}" addon_name)
+        list(APPEND engine_info_addons ${addon_name})
+    endif()
+endforeach()
+list(JOIN engine_info_addons "\", \"" engine_info_addon_list)
+set(engine_info_jit false)
+if(ANGELSCRIPT_CLI_JIT STREQUAL "angelsea")
+    set(engine_info_jit true)
+endif()
+# Whether a JIT build exists for this release and target, even when this build has none.
+set(engine_info_jit_supported false)
+if(ANGELSCRIPT_ENGINE_NUMBER GREATER_EQUAL 23700 AND NOT ANGELSCRIPT_ENGINE_PORTABLE AND CMAKE_SIZEOF_VOID_P EQUAL 8
+   AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64|arm64|aarch64|ARM64)$"
+   AND NOT (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$"))
+    set(engine_info_jit_supported true)
+endif()
+set(engine_info_debugger false)
+if(ANGELSCRIPT_CLI_HAS_DAP)
+    set(engine_info_debugger true)
+endif()
+file(WRITE "${CMAKE_BINARY_DIR}/engine-info.json"
+"{\"version\": \"${ANGELSCRIPT_ENGINE_VERSION}\", \"jit\": ${engine_info_jit}, \"jitSupported\": ${engine_info_jit_supported}, \"debugger\": ${engine_info_debugger}, \"addons\": [\"${engine_info_addon_list}\"]}
+")
 
 install(TARGETS angelscript-cli RUNTIME DESTINATION bin)
 install(FILES LICENSE DESTINATION .)

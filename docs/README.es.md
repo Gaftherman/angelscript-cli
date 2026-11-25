@@ -13,7 +13,7 @@ Hello, world!
 
 ### Windows
 
-Descarga `angelscript-cli-1.1.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo. En Windows de 32 bits usa `angelscript-cli-1.1.0-windows-x86-setup.exe`.
+Descarga `angelscript-cli-1.2.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo. En Windows de 32 bits usa `angelscript-cli-1.2.0-windows-x86-setup.exe`.
 
 1. Acepta la licencia.
 
@@ -23,9 +23,9 @@ Descarga `angelscript-cli-1.1.0-windows-x64-setup.exe` desde [Releases](https://
 
 <p align="center"><img src="images/install-2-folder.png" alt="Página de carpeta del instalador" width="520"></p>
 
-3. Elige qué instalar. La línea de comandos siempre se instala. Cada versión de AngelScript de la lista añade un programa más, `angelscript-<versión>`, compilado con ese motor, junto al `angelscript` predeterminado. Desmarca las que no necesites, o elige **Custom installation** (instalación personalizada) para seleccionarlas una a una. Las versiones aparecen cuando las compilaciones de los motores se adjuntan a la release, unos minutos después de publicarla.
+3. Elige la versión de AngelScript. Como Python, el instalador pone una versión a la vez, como `angelscript`, `asc` y `angelscript-cli`; viene marcada la más reciente. Cada línea indica si esa versión tiene compilación con JIT y qué add-ons le faltan (las más antiguas no tienen `datetime` ni `filesystem`). Bajo una versión con JIT, marca **Usar el compilador JIT** para instalar la variante con JIT (experimental, 64 bits). Ejecuta el instalador otra vez cuando quieras para cambiar la versión instalada. Las versiones distintas de la más reciente aparecen cuando sus compilaciones se adjuntan a la release, unos minutos después de publicarla.
 
-<p align="center"><img src="images/install-3-components.png" alt="Página de componentes del instalador con una casilla por versión de AngelScript" width="520"></p>
+<p align="center"><img src="images/install-3-components.png" alt="Página de componentes del instalador con un botón por versión de AngelScript y una casilla de JIT" width="520"></p>
 
 4. Deja marcada **Add AngelScript to the PATH environment variable** (añadir AngelScript a la variable PATH).
 
@@ -39,12 +39,12 @@ Abre una terminal nueva y ejecuta `asc --version`. Para quitarlo, usa **Configur
 
 ### macOS
 
-Descarga `angelscript-cli-1.1.0-macos-arm64.pkg` (Apple silicon) o `angelscript-cli-1.1.0-macos-x64.pkg` (Intel) desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ábrelo. Se instala en `/usr/local/bin`. El paquete aún no está notarizado: si macOS lo bloquea, haz clic derecho y elige **Abrir**.
+Descarga `angelscript-cli-1.2.0-macos-arm64.pkg` (Apple silicon) o `angelscript-cli-1.2.0-macos-x64.pkg` (Intel) desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ábrelo. Se instala en `/usr/local/bin`. El paquete aún no está notarizado: si macOS lo bloquea, haz clic derecho y elige **Abrir**.
 
 ### Linux
 
 ~~~sh
-$ sudo apt install ./angelscript-cli-1.1.0-linux-x64.deb
+$ sudo apt install ./angelscript-cli-1.2.0-linux-x64.deb
 ~~~
 
 Usa `linux-arm64` en ARM y `linux-x86` en x86 de 32 bits. Para quitarlo, ejecuta `sudo apt remove angelscript-cli`.
@@ -59,7 +59,7 @@ Usa `linux-arm64` en ARM y `linux-x86` en x86 de 32 bits. Para quitarlo, ejecuta
 $ curl -fsSL https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.sh | sh
 ~~~
 
-Abre una terminal nueva. Tres nombres ejecutan el mismo programa: `angelscript`, el corto `asc` y el anterior `angelscript-cli`. Para elegir una versión, define `ANGELSCRIPT_CLI_VERSION` en PowerShell o ejecuta `sh -s -- --version 1.1.0`. Para instalar a mano, extrae el archivo de [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
+Abre una terminal nueva. Tres nombres ejecutan el mismo programa: `angelscript`, el corto `asc` y el anterior `angelscript-cli`. Para elegir la versión del CLI, define `ANGELSCRIPT_CLI_VERSION` en PowerShell o ejecuta `sh -s -- --version 1.2.0`. Para elegir la versión de AngelScript, define `ANGELSCRIPT_ENGINE_VERSION` (o ejecuta `sh -s -- --engine 2.36.1`); añade `ANGELSCRIPT_CLI_JIT=1` (o `--jit`) para la compilación con JIT. La compilación elegida reemplaza a la instalada. Para instalar a mano, extrae el archivo de [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
 
 ## Inicio rápido
 
@@ -263,17 +263,20 @@ ctest --preset windows-x64
 ~~~
 
 ### JIT (opcional)
-
-El intérprete es lo predeterminado. Para compilar con el JIT [angelsea](https://github.com/asumagic/angelsea), que necesita AngelScript 2.37 o posterior y un destino de 64 bits (Windows o Linux x86-64) o arm64 (experimental), descarga sus dependencias y activa la opción:
-
+El intérprete es lo predeterminado. El JIT es [angelscript-jit](https://github.com/Gaftherman/angelscript-jit), una bifurcación de [angelsea](https://github.com/asumagic/angelsea) que se mantiene funcionando con la versión actual de AngelScript. Necesita AngelScript 2.37 o posterior y un destino de 64 bits (Windows o Linux x86-64) o arm64 (experimental). Descarga sus dependencias y activa la opción:
 ~~~sh
-git submodule update --init external/angelsea
-git -C external/angelsea submodule update --init vendor/mir vendor/fmt
+git submodule update --init external/angelscript-jit
+git -C external/angelscript-jit submodule update --init vendor/mir vendor/fmt
 cmake --preset windows-x64 -DANGELSCRIPT_CLI_JIT=angelsea
 ~~~
-
-`angelscript --version` termina entonces con `jit: angelsea`. `--no-jit` y las sesiones del depurador (`--dap-port`) siguen usando el intérprete. angelsea es software alfa; [la hoja de ruta](ROADMAP.md) lo compara con los otros JIT de AngelScript.
-
+`angelscript --version` termina entonces con `jit: angelsea`. `--no-jit` y las sesiones del depurador (`--dap-port`) siguen usando el intérprete. El JIT es software alfa; [la hoja de ruta](ROADMAP.md) lo compara con los otros JIT de AngelScript.
+### Otras versiones de AngelScript
+La versión actual se compila tal cual. Las anteriores las descarga, verifica con un SHA-256 y parchea [angelscript-engine](https://github.com/Gaftherman/angelscript-engine) (`external/angelscript-engine`):
+~~~sh
+python scripts/build-engine.py 2.36.1
+python scripts/build-engine.py 2.39.0 --jit
+~~~
+Cada release publica además una compilación por cada versión de AngelScript compatible (y una con JIT desde la 2.37), y el instalador de Windows las ofrece. [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md) indica qué admite cada una.
 ## Hoja de ruta
 
 [Gestión de paquetes y JIT](ROADMAP.md)

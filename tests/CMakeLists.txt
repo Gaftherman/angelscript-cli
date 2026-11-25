@@ -7,7 +7,7 @@ configure_cli_target(angelscript-cli-unit)
 target_include_directories(angelscript-cli-unit SYSTEM PRIVATE "${ANGELSCRIPT_SDK}/angelscript/include")
 add_test(NAME cli-unit COMMAND angelscript-cli-unit)
 
-set(cli_core_cases hello args stdlib int-main void-main compile-error exception check-ok check-fail include
+set(cli_core_cases hello args stdlib int-main void-main compile-error exception jit-hot check-ok check-fail include
     no-entry usage install init version help net-echo net-refused net-closed dump-predefined)
 # These cases use add-ons whose API changed after 2.32 (filesystem, datetime), so older engines skip them,
 # and so do portable builds of releases whose add-ons have no generic calling convention.
