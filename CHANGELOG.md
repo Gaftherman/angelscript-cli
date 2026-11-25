@@ -20,6 +20,7 @@ All notable changes to this project are documented in this file. The format foll
 
 - Builds on Linux arm64: C++-only flags no longer reach the assembly sources.
 - Builds on macOS with the older engine releases: the clashing assembly labels are renamed in the extracted copy of the engine.
+- The CI built the engine releases only for macOS x64 (a matrix `include` overwrote the other targets), so the Windows setup had no engine builds to bundle; every engine now builds on all five targets.
 - AngelScript 2.35.1 builds with Clang (macOS, Linux with clang); the extracted copy takes the Clang branch that 2.36.0 added to `WRAP_MFN_PR`.
 - AngelScript 2.22.0 to 2.22.2, 2.23.0, 2.26.0 and 2.26.1 no longer return wrong float results on Linux x64: their call-convention source is taken from the next point release.
 
