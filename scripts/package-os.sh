@@ -44,7 +44,7 @@ if [ "$kind" = deb ]; then
     ln -s angelscript "$pkg/usr/bin/asc"
     ln -s angelscript "$pkg/usr/bin/angelscript-cli"
     install -m 0644 "$root/LICENSE" "$pkg/usr/share/doc/angelscript-cli/copyright"
-    install -m 0644 "$root/THIRD_PARTY_NOTICES.md" "$pkg/usr/share/doc/angelscript-cli/THIRD_PARTY_NOTICES.md"
+    install -m 0644 "$root/docs/THIRD_PARTY_NOTICES.md" "$pkg/usr/share/doc/angelscript-cli/THIRD_PARTY_NOTICES.md"
     size=$(du -sk "$pkg/usr" | cut -f1)
     cat >"$pkg/DEBIAN/control" <<EOF
 Package: angelscript-cli

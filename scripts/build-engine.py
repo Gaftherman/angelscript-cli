@@ -9,6 +9,7 @@ is installed as <prefix>/bin/angelscript-<version> (angelscript-<version>.exe on
 the default `angelscript` command untouched. Needs CMake, Ninja or another generator, a C++20
 compiler and a checkout with the submodules.
 """
+
 import argparse
 import importlib.util
 import os
@@ -48,23 +49,42 @@ def main():
         print(f"warning: no pinned SHA-256 for {args.version}; recorded {digest}", file=sys.stderr)
         matrix.save(pins_path, pins)
     sdk = matrix.extract(archive, work / "sdk" / args.version)
-    for change in matrix.apply_sdk_fixes(sdk):
+    for change in matrix.apply_sdk_fixes(sdk, args.version, cache, pins):
         print(f"compatibility fix in the extracted copy: {change}")
     build = work / "build" / args.version
     log = work / "logs" / f"{args.version}.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     log.unlink(missing_ok=True)
-    configure = ["cmake", "-S", str(matrix.ROOT), "-B", str(build), "-DCMAKE_BUILD_TYPE=Release",
-                 f"-DANGELSCRIPT_SDK={sdk}"]
+    configure = [
+        "cmake",
+        "-S",
+        str(matrix.ROOT),
+        "-B",
+        str(build),
+        "-DCMAKE_BUILD_TYPE=Release",
+        f"-DANGELSCRIPT_SDK={sdk}",
+    ]
+    if os.environ.get("ASDEBUGGER_DIR"):
+        configure.append(f"-DASDEBUGGER_DIR={os.environ['ASDEBUGGER_DIR']}")
     if shutil.which("ninja"):
         configure += ["-G", "Ninja"]
-    if matrix.run(configure, matrix.ROOT, log) != 0 or \
-       matrix.run(["cmake", "--build", str(build), "--config", "Release", "--parallel", str(args.jobs)],
-                  matrix.ROOT, log) != 0:
+    if (
+        matrix.run(configure, matrix.ROOT, log) != 0
+        or matrix.run(
+            ["cmake", "--build", str(build), "--config", "Release", "--parallel", str(args.jobs)], matrix.ROOT, log
+        )
+        != 0
+    ):
         print(f"The build failed: {matrix.first_error(log) or log}", file=sys.stderr)
+        lines = log.read_text(encoding="utf-8", errors="replace").splitlines() if log.exists() else []
+        hit = next((i for i, line in enumerate(lines) if " error" in line.lower() and "FAILED" not in line), None)
+        if hit is not None:
+            print("\n".join(lines[max(0, hit - 3) : hit + 37]), file=sys.stderr)
         return 1
     suffix = ".exe" if os.name == "nt" else ""
-    binary = next((p for p in build.rglob(f"angelscript{suffix}") if p.is_file() and p.parent.name != "CMakeFiles"), None)
+    binary = next(
+        (p for p in build.rglob(f"angelscript{suffix}") if p.is_file() and p.parent.name != "CMakeFiles"), None
+    )
     if not binary:
         print("The build did not produce an angelscript executable.", file=sys.stderr)
         return 1

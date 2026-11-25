@@ -38,7 +38,7 @@ if ($EngineDir) {
 }
 
 & $Compiler @engineArgs "/DAppVersion=$Version" "/DSourceExe=$binaryPath" "/DLicenseFile=$(Join-Path $root 'LICENSE')" `
-    "/DNoticesFile=$(Join-Path $root 'THIRD_PARTY_NOTICES.md')" "/DOutputDir=$distFull" `
+    "/DNoticesFile=$(Join-Path $root 'docs/THIRD_PARTY_NOTICES.md')" "/DOutputDir=$distFull" `
     (Join-Path $root 'packaging\windows\angelscript.iss')
 if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
 

@@ -7,6 +7,8 @@ The CLI builds against any official release from [angelcode.com](https://www.ang
 - **Partial**: builds, but some of the CLI's tests fail on that release. Prefer the nearest newer release listed as Run and check or Full.
 - **Unsupported**: the release does not build. Releases before 2.22 run through the function-id API, and two one-line fixes are applied to the extracted copy of 2.20 to 2.21 and 2.24 to 2.25 (see `scripts/engine-matrix.py`).
 
+2.22.0 to 2.22.2, 2.23.0, 2.26.0 and 2.26.1 return wrong float results or crash on Linux x64 because of their `as_callfunc_x64_gcc.cpp`. The extracted copy takes that file (and `as_callfunc.h` for 2.22) from the next point release, 2.23.1 or 2.26.2, and nothing else, so the engine stays the official one. 2.20.0, 2.20.1 and 2.31.0 crash in other places of the engine and are not patched; use 2.20.2, 2.21.0 or later, and 2.31.1.
+
 `angelscript --dump-predefined` needs 2.39.0 or later.
 
 | AngelScript | Support | Builds | Tests | Debugger (DAP) | Note |
@@ -37,18 +39,18 @@ The CLI builds against any official release from [angelcode.com](https://www.ang
 | 2.27.0 | Run and check | yes | 21/21 | no |  |
 | 2.26.3 | Run and check | yes | 21/21 | no |  |
 | 2.26.2 | Run and check | yes | 21/21 | no |  |
-| 2.26.1 | Partial | yes | 12/21 | no | the engine crashes (segmentation fault) in 9 tests; fixed in 2.26.2 |
-| 2.26.0 | Partial | yes | 12/21 | no | the engine crashes (segmentation fault) in 9 tests; fixed in 2.26.2 |
+| 2.26.1 | Run and check | yes | 21/21 | no |  |
+| 2.26.0 | Run and check | yes | 21/21 | no |  |
 | 2.25.2 | Run and check | yes | 21/21 | no |  |
 | 2.25.1 | Run and check | yes | 21/21 | no |  |
 | 2.25.0 | Run and check | yes | 21/21 | no |  |
 | 2.24.1 | Run and check | yes | 21/21 | no |  |
 | 2.24.0a | Run and check | yes | 21/21 | no |  |
 | 2.23.1 | Run and check | yes | 21/21 | no |  |
-| 2.23.0 | Partial | yes | 20/21 | no | cli-stdlib: float results of native functions read as 0 on Linux x64 (sqrt, parseFloat); a bug of this release |
-| 2.22.2 | Partial | yes | 20/21 | no | cli-stdlib: float results of native functions read as 0 on Linux x64 (sqrt, parseFloat); a bug of this release |
-| 2.22.1 | Partial | yes | 20/21 | no | cli-stdlib: float results of native functions read as 0 on Linux x64 (sqrt, parseFloat); a bug of this release |
-| 2.22.0 | Partial | yes | 20/21 | no | cli-stdlib: float results of native functions read as 0 on Linux x64 (sqrt, parseFloat); a bug of this release |
+| 2.23.0 | Run and check | yes | 21/21 | no |  |
+| 2.22.2 | Partial | yes | 20/21 | no | 1 test fails: this release lacks a script feature the test uses |
+| 2.22.1 | Partial | yes | 20/21 | no | 1 test fails: this release lacks a script feature the test uses |
+| 2.22.0 | Partial | yes | 20/21 | no | 1 test fails: this release lacks a script feature the test uses |
 | 2.21.0 | Partial | yes | 20/21 | no | 1 test fails: this release lacks a script feature the test uses |
 | 2.20.3 | Partial | yes | 18/21 | no | 3 tests fail: this release lacks script features the tests use (global initializers with calls, add-on join) |
 | 2.20.2 | Partial | yes | 18/21 | no | 3 tests fail: this release lacks script features the tests use (global initializers with calls, add-on join) |

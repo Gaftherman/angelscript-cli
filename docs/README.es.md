@@ -1,6 +1,6 @@
 # AngelScript CLI
 
-**[English](README.md)** | **[Español](README.es.md)**
+**[English](../README.md)** | **[Español](README.es.md)**
 
 Ejecuta, comprueba y depura scripts de AngelScript desde la terminal, como ejecutas Python o Node. Un programa pequeño con archivos, cadenas, fechas y sockets TCP incluidos.
 
@@ -17,19 +17,19 @@ Descarga `angelscript-cli-1.0.0-windows-x64-setup.exe` desde [Releases](https://
 
 1. Acepta la licencia.
 
-<p align="center"><img src="docs/images/install-1-license.png" alt="Página de licencia del instalador" width="520"></p>
+<p align="center"><img src="images/install-1-license.png" alt="Página de licencia del instalador" width="520"></p>
 
 2. Elige la carpeta. La predeterminada está en tu perfil de usuario y no necesita permisos de administrador.
 
-<p align="center"><img src="docs/images/install-2-folder.png" alt="Página de carpeta del instalador" width="520"></p>
+<p align="center"><img src="images/install-2-folder.png" alt="Página de carpeta del instalador" width="520"></p>
 
 3. Deja marcada **Add AngelScript to the PATH environment variable** (añadir AngelScript a la variable PATH).
 
-<p align="center"><img src="docs/images/install-3-tasks.png" alt="Página de tareas del instalador con la opción de PATH" width="520"></p>
+<p align="center"><img src="images/install-3-tasks.png" alt="Página de tareas del instalador con la opción de PATH" width="520"></p>
 
 4. Pulsa **Install** y después **Finish**.
 
-<p align="center"><img src="docs/images/install-5-finish.png" alt="Página final del instalador" width="520"></p>
+<p align="center"><img src="images/install-5-finish.png" alt="Página final del instalador" width="520"></p>
 
 Abre una terminal nueva y ejecuta `asc --version`. Para quitarlo, usa **Configuración > Aplicaciones**. El instalador aún no está firmado, así que Windows SmartScreen puede mostrar **Windows protegió su PC**: elige **Más información** y después **Ejecutar de todas formas**.
 
@@ -82,7 +82,7 @@ Hello, Ada!
 
 ## Ejemplos
 
-Todos los ejemplos están en [`examples/`](examples).
+Todos los ejemplos están en [`examples/`](../examples).
 
 ### Archivos
 
@@ -174,9 +174,9 @@ El puerto `0` elige uno libre. `accept()` espera al siguiente cliente, y la cone
 
 | Script | Muestra |
 | --- | --- |
-| [`listdir.as`](examples/listdir.as) | Crear una carpeta, listar sus archivos ordenados y borrarla |
-| [`strings.as`](examples/strings.as) | Dividir, unir, subcadenas, búsqueda y formato de números |
-| [`dates.as`](examples/dates.as) | Crear una fecha, sumar tiempo, comparar y restar |
+| [`listdir.as`](../examples/listdir.as) | Crear una carpeta, listar sus archivos ordenados y borrarla |
+| [`strings.as`](../examples/strings.as) | Dividir, unir, subcadenas, búsqueda y formato de números |
+| [`dates.as`](../examples/dates.as) | Crear una fecha, sumar tiempo, comparar y restar |
 
 ~~~text
 > asc strings.as
@@ -199,19 +199,38 @@ float: 3.14
 
 3. Pulsa F5. La extensión busca `angelscript`, `asc` o `angelscript-cli` en el PATH. Define `angelscript.runner.path` para usar otro ejecutable.
 
-<p align="center"><img src="docs/images/vscode-files.png" alt="files.as abierto en VS Code con asc ejecutándolo en la terminal" width="720"></p>
+<p align="center"><img src="images/vscode-files.png" alt="files.as abierto en VS Code con asc ejecutándolo en la terminal" width="720"></p>
 <p align="center"><em>La extensión revisa el código mientras escribes. La terminal lo ejecuta con <code>asc</code>.</em></p>
 
-<p align="center"><img src="docs/images/vscode-tcp-echo.png" alt="tcp-echo.as abierto en VS Code con su salida en la terminal" width="720"></p>
+<p align="center"><img src="images/vscode-tcp-echo.png" alt="tcp-echo.as abierto en VS Code con su salida en la terminal" width="720"></p>
 <p align="center"><em>Un ejemplo de eco TCP y su salida.</em></p>
 
-<p align="center"><img src="docs/images/vscode-run.gif" alt="Escribiendo `asc files.as` en la terminal de VS Code" width="720"></p>
+<p align="center"><img src="images/vscode-run.gif" alt="Escribiendo `asc files.as` en la terminal de VS Code" width="720"></p>
 
-<p align="center"><img src="docs/images/cmd-run.png" alt="Un Símbolo del sistema normal ejecutando los mismos scripts" width="720"></p>
+<p align="center"><img src="images/cmd-run.png" alt="Un Símbolo del sistema normal ejecutando los mismos scripts" width="720"></p>
 
 ### Soporte en el editor
 
-[`examples/angelscript-cli.as.predefined`](examples/angelscript-cli.as.predefined) describe cada tipo y función que registra la CLI (`string`, `array`, `dictionary`, `file`, `datetime`, `filesystem`, `TcpSocket`, `println`, `getArgs` y más), así que [AngelLSP](https://github.com/Gaftherman/angelscript-lsp) revisa tus scripts sin marcar esos nombres como desconocidos. [`examples/angelscript.rules.json`](examples/angelscript.rules.json) declara la versión del motor. Regenera el stub para otra compilación con `angelscript --dump-predefined > mi.as.predefined`.
+[`examples/angelscript-cli.as.predefined`](../examples/angelscript-cli.as.predefined) describe cada tipo y función que registra la CLI (`string`, `array`, `dictionary`, `file`, `datetime`, `filesystem`, `TcpSocket`, `println`, `getArgs` y más), así que [AngelLSP](https://github.com/Gaftherman/angelscript-lsp) revisa tus scripts sin marcar esos nombres como desconocidos. [`examples/angelscript.rules.json`](../examples/angelscript.rules.json) declara la versión del motor. Regenera el stub para otra compilación con `angelscript --dump-predefined > mi.as.predefined`.
+
+### Depurar un script
+
+Ejecuta el script con `--dap-port` y conecta VS Code:
+
+~~~text
+> asc --dap-port 9002 script.as
+DAP listening on 127.0.0.1:9002
+~~~
+
+Añade esto a `configurations` en `.vscode/launch.json`, pon un punto de interrupción y pulsa F5:
+
+~~~json
+{ "type": "angelscript", "request": "attach", "name": "Attach to asc", "host": "127.0.0.1", "port": 9002, "protocol": "dap" }
+~~~
+
+<p align="center"><img src="https://raw.githubusercontent.com/Gaftherman/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code conectado a un script que asc ejecuta en el Símbolo del sistema, avanzando paso a paso por addBonus" width="720"></p>
+
+El depurador necesita AngelScript 2.36.0 o posterior (consulta [ENGINE_VERSIONS.md](ENGINE_VERSIONS.md)) y viene de [angelscript-dap](https://github.com/Gaftherman/angelscript-dap).
 
 ## Referencia
 
@@ -231,8 +250,9 @@ Incluido: cadenas y utilidades de cadenas, arrays, diccionarios, matemáticas, a
 Usa un compilador C++20, CMake 3.21+ y Ninja. Usa una terminal de desarrollador x64 para MSVC. Node.js habilita la prueba de DAP. Elige **windows-x64**, **linux-x64**, **linux-arm64** o **macos**.
 
 ~~~sh
-git clone --recursive https://github.com/Gaftherman/angelscript-cli.git
+git clone https://github.com/Gaftherman/angelscript-cli.git
 cd angelscript-cli
+git submodule update --init
 cmake --preset windows-x64
 cmake --build --preset windows-x64
 ctest --preset windows-x64
@@ -240,7 +260,7 @@ ctest --preset windows-x64
 
 ## Hoja de ruta
 
-[Gestión de paquetes y JIT](docs/ROADMAP.md)
+[Gestión de paquetes y JIT](ROADMAP.md)
 
 ## Créditos
 
@@ -249,10 +269,22 @@ AngelScript CLI se apoya en el trabajo de estos proyectos. Sus licencias se repr
 | Proyecto | Licencia | Uso |
 | --- | --- | --- |
 | [AngelScript](https://github.com/anjo76/angelscript) de Andreas Jönsson | zlib | El lenguaje y su runtime |
-| [asdebugger](https://github.com/Gaftherman/asdebugger) | MIT | Núcleo del Debug Adapter Protocol |
+| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | MIT | Núcleo del Debug Adapter Protocol |
 | [cppdap](https://github.com/google/cppdap) | Apache-2.0 | Biblioteca del Debug Adapter Protocol |
 | [nlohmann/json](https://github.com/nlohmann/json) | MIT | JSON, a través de cppdap |
 
 ## Licencia
 
-[MIT](LICENSE)
+[MIT](../LICENSE)
+
+## Soporte
+
+Abre una [incidencia](https://github.com/Gaftherman/angelscript-cli/issues) para el programa de línea de comandos, los instaladores y las versiones del motor de [ENGINE_VERSIONS.md](ENGINE_VERSIONS.md). Incluye la salida de `angelscript --version`, tu sistema operativo y un script corto que reproduzca el problema. Los problemas del depurador van a [angelscript-dap](https://github.com/Gaftherman/angelscript-dap/issues) y los del editor a [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp/issues). Para ayudar, lee [CONTRIBUTING.es.md](CONTRIBUTING.es.md).
+
+## Proyectos relacionados
+
+| Proyecto | Uso |
+| --- | --- |
+| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | El núcleo del depurador detrás de `--dap-port` |
+| [angelscript-debugger-example](https://github.com/Gaftherman/angelscript-debugger-example) | Una aplicación que muestra cómo usar el depurador |
+| [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp) | Soporte del editor para VS Code |

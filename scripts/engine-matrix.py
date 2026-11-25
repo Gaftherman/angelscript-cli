@@ -9,6 +9,7 @@ Each run records, per version, whether the CLI builds, whether CTest passes and 
 engines/matrix.json. The SHA-256 of every downloaded archive is pinned in engines/versions.json the
 first time it is seen and checked on every later download.
 """
+
 import argparse
 import hashlib
 import json
@@ -45,7 +46,7 @@ def version_key(version):
 
 def official_versions():
     html = fetch(f"{BASE}/downloads.html").decode("utf-8", "replace")
-    found = set(re.findall(r'/angelscript/sdk/files/angelscript_([0-9][0-9.]*[0-9a-z]?)\.zip', html))
+    found = set(re.findall(r"/angelscript/sdk/files/angelscript_([0-9][0-9.]*[0-9a-z]?)\.zip", html))
     return sorted(found, key=version_key)
 
 
@@ -92,14 +93,54 @@ SDK_FIXES = [
     # scriptarray.cpp of 2.24 and 2.25 compares a function pointer with >= 0.
     ("add_on/scriptarray/scriptarray.cpp", "cache->cmpFunc >= 0", "cache->cmpFunc != 0"),
     # angelscript.h of 2.20 and 2.21 returns 0 where an asSFuncPtr is expected in a template that is never used.
-    ("angelscript/include/angelscript.h", r"(ERROR_UnsupportedMethodPtr\[N-100\];\s*)return 0;", r"\1return asSFuncPtr();"),
+    (
+        "angelscript/include/angelscript.h",
+        r"(ERROR_UnsupportedMethodPtr\[N-100\];\s*)return 0;",
+        r"\1return asSFuncPtr();",
+    ),
     # as_compiler.cpp of 2.20.2 passes false where an object type pointer is expected.
     ("angelscript/source/as_compiler.cpp", "&funcPtr, node, true, true, false);", "&funcPtr, node, true, true, 0);"),
+    # as_callfunc_x64_gcc.cpp before 2.39 defines global asm labels that clash on Clang/macOS; 2.39 prefixes them with L.
+    ("angelscript/source/as_callfunc_x64_gcc.cpp", "jle endstack \\n", "jle Lendstack \\n"),
+    ("angelscript/source/as_callfunc_x64_gcc.cpp", '"loopstack: \\n', '"Lloopstack: \\n'),
+    ("angelscript/source/as_callfunc_x64_gcc.cpp", "jne loopstack \\n", "jne Lloopstack \\n"),
+    ("angelscript/source/as_callfunc_x64_gcc.cpp", '"endstack: \\n', '"Lendstack: \\n'),
+    ("angelscript/source/as_callfunc_x64_gcc.cpp", "je intret \\n", "je Lintret \\n"),
+    ("angelscript/source/as_callfunc_x64_gcc.cpp", "jmp endcall \\n", "jmp Lendcall \\n"),
+    ("angelscript/source/as_callfunc_x64_gcc.cpp", '"intret: \\n', '"Lintret: \\n'),
+    ("angelscript/source/as_callfunc_x64_gcc.cpp", '"endcall: \\n', '"Lendcall: \\n'),
 ]
 
 
-def apply_sdk_fixes(sdk):
+# Source files that an official release replaced in the next point release to fix a crash or a wrong result.
+# They are copied from that release into the extracted copy of the older one (the engine stays the official one).
+SDK_BORROW = {
+    "2.22.0": ("2.23.1", ["angelscript/source/as_callfunc.h", "angelscript/source/as_callfunc_x64_gcc.cpp"]),
+    "2.22.1": ("2.23.1", ["angelscript/source/as_callfunc.h", "angelscript/source/as_callfunc_x64_gcc.cpp"]),
+    "2.22.2": ("2.23.1", ["angelscript/source/as_callfunc.h", "angelscript/source/as_callfunc_x64_gcc.cpp"]),
+    "2.23.0": ("2.23.1", ["angelscript/source/as_callfunc_x64_gcc.cpp"]),
+    "2.26.0": ("2.26.2", ["angelscript/source/as_callfunc_x64_gcc.cpp"]),
+    "2.26.1": ("2.26.2", ["angelscript/source/as_callfunc_x64_gcc.cpp"]),
+}
+
+
+def borrow_sources(sdk, version, cache, pins):
+    donor, files = SDK_BORROW.get(version, (None, []))
     applied = []
+    if not donor:
+        return applied
+    archive, _ = download(donor, cache, pins)
+    with zipfile.ZipFile(archive) as bundle:
+        for relative in files:
+            member = next((n for n in bundle.namelist() if n.endswith("/" + relative) or n == relative), None)
+            if member:
+                (sdk / relative).write_bytes(bundle.read(member))
+                applied.append(f"{relative}: taken from {donor}")
+    return applied
+
+
+def apply_sdk_fixes(sdk, version=None, cache=None, pins=None):
+    applied = borrow_sources(sdk, version, cache, pins) if version and cache is not None else []
     for relative, old, new in SDK_FIXES:
         path = sdk / relative
         if path.exists():
@@ -130,17 +171,32 @@ def test_version(version, work, cache, pins, jobs):
     started = time.time()
     archive, digest = download(version, cache, pins)
     sdk = extract(archive, work / "sdk" / version)
-    apply_sdk_fixes(sdk)
+    apply_sdk_fixes(sdk, version, cache, pins)
     build = work / "build" / version
     log = work / "logs" / f"{version}.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     log.unlink(missing_ok=True)
     if build.exists():
         shutil.rmtree(build)
-    result = {"version": version, "sha256": digest, "configure": False, "builds": False,
-              "tests": {"passed": 0, "total": 0}, "error": ""}
-    configure = ["cmake", "-S", str(ROOT), "-B", str(build), "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release",
-                 f"-DANGELSCRIPT_SDK={sdk}"]
+    result = {
+        "version": version,
+        "sha256": digest,
+        "configure": False,
+        "builds": False,
+        "tests": {"passed": 0, "total": 0},
+        "error": "",
+    }
+    configure = [
+        "cmake",
+        "-S",
+        str(ROOT),
+        "-B",
+        str(build),
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Release",
+        f"-DANGELSCRIPT_SDK={sdk}",
+    ]
     if os.environ.get("ASDEBUGGER_DIR"):
         configure.append(f"-DASDEBUGGER_DIR={os.environ['ASDEBUGGER_DIR']}")
     if run(configure, ROOT, log) == 0:
@@ -148,8 +204,10 @@ def test_version(version, work, cache, pins, jobs):
         if run(["cmake", "--build", str(build), "--parallel", str(jobs)], ROOT, log) == 0:
             result["builds"] = True
             run(["ctest", "--test-dir", str(build), "--output-on-failure"], ROOT, log)
-            summary = re.findall(r"(\d+)% tests passed, (\d+) tests failed out of (\d+)",
-                                 log.read_text(encoding="utf-8", errors="replace"))
+            summary = re.findall(
+                r"(\d+)% tests passed, (\d+) tests failed out of (\d+)",
+                log.read_text(encoding="utf-8", errors="replace"),
+            )
             if summary:
                 _, failed, total = map(int, summary[-1])
                 result["tests"] = {"passed": total - failed, "total": total}
@@ -191,8 +249,13 @@ def main():
         try:
             row = test_version(version, work, cache, pins, args.jobs)
         except Exception as exc:  # a missing archive or a broken zip is a result, not a crash
-            row = {"version": version, "configure": False, "builds": False,
-                   "tests": {"passed": 0, "total": 0}, "error": f"{type(exc).__name__}: {exc}"}
+            row = {
+                "version": version,
+                "configure": False,
+                "builds": False,
+                "tests": {"passed": 0, "total": 0},
+                "error": f"{type(exc).__name__}: {exc}",
+            }
         matrix[version] = row
         print(json.dumps(row), flush=True)
         save(pins_path, pins)

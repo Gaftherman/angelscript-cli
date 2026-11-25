@@ -37,9 +37,9 @@ redistribute it freely, subject to the following restrictions:
 
 ---
 
-## asdebugger
+## angelscript-dap
 
-https://github.com/Gaftherman/asdebugger
+https://github.com/Gaftherman/angelscript-dap
 
 Debug Adapter Protocol core used by the `--dap` mode.
 

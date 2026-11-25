@@ -15,7 +15,7 @@
     "builds": true,
     "configure": true,
     "error": "",
-    "seconds": 6,
+    "seconds": 5,
     "sha256": "7c72401034b21164abca90580eedba8e12439cb41f4c4da8cc2ea589ca6b1baf",
     "tests": {
       "passed": 10,
@@ -63,7 +63,7 @@
     "builds": true,
     "configure": true,
     "error": "",
-    "seconds": 6,
+    "seconds": 5,
     "sha256": "9d3743c25d43560e31dc91b2f0d9a47249c3e91e69967488cda370de45f70548",
     "tests": {
       "passed": 20,
@@ -75,7 +75,7 @@
     "builds": true,
     "configure": true,
     "error": "",
-    "seconds": 7,
+    "seconds": 5,
     "sha256": "f542b3e8b880fe1393fecb81622404221b3489d5db3192c3c0fe557f1603bc3a",
     "tests": {
       "passed": 20,
@@ -99,10 +99,10 @@
     "builds": true,
     "configure": true,
     "error": "",
-    "seconds": 6,
+    "seconds": 7,
     "sha256": "667e5238c1ec687df8e5b6888871855a50d892a548970680f6c8556f19023e0c",
     "tests": {
-      "passed": 20,
+      "passed": 21,
       "total": 21
     },
     "version": "2.23.0"
@@ -183,10 +183,10 @@
     "builds": true,
     "configure": true,
     "error": "",
-    "seconds": 5,
+    "seconds": 6,
     "sha256": "2701441de3e8bdbb601d560b95bd6302a82ab9432fb64b1634f7667468f57f9e",
     "tests": {
-      "passed": 12,
+      "passed": 21,
       "total": 21
     },
     "version": "2.26.0"
@@ -195,10 +195,10 @@
     "builds": true,
     "configure": true,
     "error": "",
-    "seconds": 8,
+    "seconds": 6,
     "sha256": "40896a61008671df8210efe9d1b9dc78fc32dafca35f5b4d2526b151ff7d97e6",
     "tests": {
-      "passed": 12,
+      "passed": 21,
       "total": 21
     },
     "version": "2.26.1"
@@ -363,7 +363,7 @@
     "builds": true,
     "configure": true,
     "error": "",
-    "seconds": 8,
+    "seconds": 6,
     "sha256": "269c94a9a6526b85c0d180657fa749d507cf791c07ed264a1126b6927e7d400d",
     "tests": {
       "passed": 19,

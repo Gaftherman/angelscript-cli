@@ -1,6 +1,6 @@
 # AngelScript CLI
 
-**[English](README.md)** | **[Español](README.es.md)**
+**[English](README.md)** | **[Español](docs/README.es.md)**
 
 Run, check and debug standalone AngelScript scripts from the terminal, the way you run Python or Node. One small program with files, strings, dates and TCP sockets built in.
 
@@ -213,6 +213,25 @@ float: 3.14
 
 [`examples/angelscript-cli.as.predefined`](examples/angelscript-cli.as.predefined) describes every type and function the CLI registers (`string`, `array`, `dictionary`, `file`, `datetime`, `filesystem`, `TcpSocket`, `println`, `getArgs` and more), so [AngelLSP](https://github.com/Gaftherman/angelscript-lsp) checks your scripts without reporting those names as unknown. [`examples/angelscript.rules.json`](examples/angelscript.rules.json) declares the engine version. Regenerate the stub for another build with `angelscript --dump-predefined > my.as.predefined`.
 
+### Debug a script
+
+Run the script with `--dap-port` and attach VS Code to it:
+
+~~~text
+> asc --dap-port 9002 script.as
+DAP listening on 127.0.0.1:9002
+~~~
+
+Add this to `configurations` in `.vscode/launch.json`, set a breakpoint and press F5:
+
+~~~json
+{ "type": "angelscript", "request": "attach", "name": "Attach to asc", "host": "127.0.0.1", "port": 9002, "protocol": "dap" }
+~~~
+
+<p align="center"><img src="https://raw.githubusercontent.com/Gaftherman/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code attached to a script that asc runs in Command Prompt, stepping through addBonus" width="720"></p>
+
+The debugger needs AngelScript 2.36.0 or later (see [docs/ENGINE_VERSIONS.md](docs/ENGINE_VERSIONS.md)) and comes from [angelscript-dap](https://github.com/Gaftherman/angelscript-dap).
+
 ## Reference
 
 | Command | Does |
@@ -231,8 +250,9 @@ Built in: strings and string utilities, arrays, dictionaries, math, files, files
 Use a C++20 compiler, CMake 3.21+ and Ninja. Use an x64 developer terminal for MSVC. Node.js enables the DAP test. Choose **windows-x64**, **linux-x64**, **linux-arm64** or **macos**.
 
 ~~~sh
-git clone --recursive https://github.com/Gaftherman/angelscript-cli.git
+git clone https://github.com/Gaftherman/angelscript-cli.git
 cd angelscript-cli
+git submodule update --init
 cmake --preset windows-x64
 cmake --build --preset windows-x64
 ctest --preset windows-x64
@@ -244,15 +264,27 @@ ctest --preset windows-x64
 
 ## Credits
 
-AngelScript CLI runs on the work of these projects. Their licenses are reproduced in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and ship with every package.
+AngelScript CLI runs on the work of these projects. Their licenses are reproduced in [THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) and ship with every package.
 
 | Project | License | Use |
 | --- | --- | --- |
 | [AngelScript](https://github.com/anjo76/angelscript) by Andreas Jönsson | zlib | The language and its runtime |
-| [asdebugger](https://github.com/Gaftherman/asdebugger) | MIT | Debug Adapter Protocol core |
+| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | MIT | Debug Adapter Protocol core |
 | [cppdap](https://github.com/google/cppdap) | Apache-2.0 | Debug Adapter Protocol library |
 | [nlohmann/json](https://github.com/nlohmann/json) | MIT | JSON, through cppdap |
 
 ## License
 
 [MIT](LICENSE)
+
+## Support
+
+Open an [issue](https://github.com/Gaftherman/angelscript-cli/issues) for the command line program, the installers and the engine versions listed in [docs/ENGINE_VERSIONS.md](docs/ENGINE_VERSIONS.md). Include the output of `angelscript --version`, your operating system and a short script that reproduces the problem. Debugger problems go to [angelscript-dap](https://github.com/Gaftherman/angelscript-dap/issues), and editor problems to [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp/issues). To help, read [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Related projects
+
+| Project | Use |
+| --- | --- |
+| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | The debugger core behind `--dap-port` |
+| [angelscript-debugger-example](https://github.com/Gaftherman/angelscript-debugger-example) | A host that shows how to use the debugger |
+| [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp) | Editor support for VS Code |
