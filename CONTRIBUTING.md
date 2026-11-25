@@ -17,7 +17,7 @@ Open an [issue](https://github.com/Gaftherman/angelscript-cli/issues) with the v
 
 ## Build and test
 
-Use a C++20 compiler, CMake 3.21+ and Ninja. Choose **windows-x64**, **linux-x64**, **linux-arm64** or **macos**:
+Use a C++20 compiler, CMake 3.21+ and Ninja. Choose **windows-x64**, **windows-x86**, **linux-x64**, **linux-x86** (needs `g++-multilib`), **linux-arm64** or **macos**:
 
 ~~~sh
 git clone https://github.com/Gaftherman/angelscript-cli.git

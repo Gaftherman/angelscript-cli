@@ -9,6 +9,7 @@ All notable changes to this project are documented in this file. The format foll
 ### Added
 
 - Build against official AngelScript releases from 2.20 to 2.39 (`scripts/build-engine.py`) and publish a build for each supported engine with every release. `docs/ENGINE_VERSIONS.md` lists what each version supports.
+- Windows x86 and Linux x86 builds: archives, a Windows setup program and a Debian package for each, plus an engine build for every supported release.
 - Support section in the README and a contributing guide in English and Spanish.
 
 ### Changed
@@ -20,7 +21,9 @@ All notable changes to this project are documented in this file. The format foll
 
 - Builds on Linux arm64: C++-only flags no longer reach the assembly sources.
 - Builds on macOS with the older engine releases: the clashing assembly labels are renamed in the extracted copy of the engine.
-- The CI built the engine releases only for macOS x64 (a matrix `include` overwrote the other targets), so the Windows setup had no engine builds to bundle; every engine now builds on all five targets.
+- The CI built the engine releases only for macOS x64 (a matrix `include` overwrote the other targets), so the Windows setup had no engine builds to bundle; every engine now builds on all seven targets and the CI runs each one on a sample script.
+- The CLI links Winsock on Windows, so engine releases without a debugger (before 2.36) build there.
+- Engine releases without native calls on arm64 (2.33 and earlier, and 2.35 and 2.36 on macOS) build in the engine's portable mode; add-ons that have no portable registration are left out of those builds.
 - AngelScript 2.35.1 builds with Clang (macOS, Linux with clang); the extracted copy takes the Clang branch that 2.36.0 added to `WRAP_MFN_PR`.
 - AngelScript 2.22.0 to 2.22.2, 2.23.0, 2.26.0 and 2.26.1 no longer return wrong float results on Linux x64: their call-convention source is taken from the next point release.
 

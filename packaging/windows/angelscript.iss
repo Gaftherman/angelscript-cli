@@ -13,9 +13,13 @@
 #ifndef NoticesFile
   #error Pass /DNoticesFile=<path to THIRD_PARTY_NOTICES.md>
 #endif
+#ifndef AppArch
+  #define AppArch "x64"
+#endif
 #ifndef OutputDir
   #define OutputDir "."
 #endif
+; Optional: /DAppArch=x86 builds the 32-bit setup (default x64).
 ; Optional: /DEngineDir=<folder with angelscript-<version>.exe builds against other AngelScript releases>.
 
 [Setup]
@@ -32,11 +36,15 @@ DefaultDirName={autopf}\AngelScript
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
+#if AppArch == "x86"
+ArchitecturesAllowed=x86compatible
+#else
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+#endif
 LicenseFile={#LicenseFile}
 OutputDir={#OutputDir}
-OutputBaseFilename=angelscript-cli-{#AppVersion}-windows-x64-setup
+OutputBaseFilename=angelscript-cli-{#AppVersion}-windows-{#AppArch}-setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

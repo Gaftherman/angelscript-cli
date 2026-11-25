@@ -9,10 +9,11 @@ add_test(NAME cli-unit COMMAND angelscript-cli-unit)
 
 set(cli_core_cases hello args stdlib int-main void-main compile-error exception check-ok check-fail include
     no-entry usage install init version help net-echo net-refused net-closed dump-predefined)
-# These cases use add-ons whose API changed after 2.32 (filesystem, datetime), so older engines skip them.
+# These cases use add-ons whose API changed after 2.32 (filesystem, datetime), so older engines skip them,
+# and so do portable builds of releases whose add-ons have no generic calling convention.
 set(cli_addon_cases filesystem datetime examples)
 set(cli_cases ${cli_core_cases})
-if(ANGELSCRIPT_CLI_ENGINE_NUMBER GREATER_EQUAL 23300)
+if(ANGELSCRIPT_CLI_ENGINE_NUMBER GREATER_EQUAL 23300 AND NOT cli_skipped_addons)
     list(APPEND cli_cases ${cli_addon_cases})
 endif()
 foreach(integration_case IN LISTS cli_cases)

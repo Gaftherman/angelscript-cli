@@ -109,7 +109,19 @@ case $2 in
 esac
 SH
 chmod +x "$work/tools/curl"
-TEST_ARCHIVE=$archive TEST_CHECKSUMS=$checksums TEST_ASSET=$asset PATH="$work/tools:$PATH" \
+# The archive under test can be for another architecture than the runner (a 32-bit build on an x64 host).
+case $asset in
+    *-x86.tar.gz) test_machine=i686 ;;
+    *-arm64.tar.gz) test_machine=aarch64 ;;
+    *) test_machine=x86_64 ;;
+esac
+cat > "$work/tools/uname" <<'SH'
+#!/bin/sh
+if [ "${1:-}" = -m ]; then printf '%s
+' "$TEST_MACHINE"; else exec /usr/bin/uname "$@"; fi
+SH
+chmod +x "$work/tools/uname"
+TEST_MACHINE=$test_machine TEST_ARCHIVE=$archive TEST_CHECKSUMS=$checksums TEST_ASSET=$asset PATH="$work/tools:$PATH" \
     "$test_shell" -s -- --prefix "$prefix" < "$installer"
 assert_version
 

@@ -8,7 +8,8 @@ param(
     [Parameter(Mandatory)][string]$Binary,
     [Parameter(Mandatory)][ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')][string]$Version,
     [string]$Compiler,
-    [string]$EngineDir
+    [string]$EngineDir,
+    [ValidateSet('x64', 'x86')][string]$Arch = 'x64'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -37,12 +38,12 @@ if ($EngineDir) {
     $engineArgs = @("/DEngineDir=$engineFull")
 }
 
-& $Compiler @engineArgs "/DAppVersion=$Version" "/DSourceExe=$binaryPath" "/DLicenseFile=$(Join-Path $root 'LICENSE')" `
+& $Compiler @engineArgs "/DAppArch=$Arch" "/DAppVersion=$Version" "/DSourceExe=$binaryPath" "/DLicenseFile=$(Join-Path $root 'LICENSE')" `
     "/DNoticesFile=$(Join-Path $root 'docs/THIRD_PARTY_NOTICES.md')" "/DOutputDir=$distFull" `
     (Join-Path $root 'packaging\windows\angelscript.iss')
 if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
 
-$asset = "angelscript-cli-$Version-windows-x64-setup.exe"
+$asset = "angelscript-cli-$Version-windows-$Arch-setup.exe"
 $assetPath = Join-Path $distFull $asset
 if (-not (Test-Path -LiteralPath $assetPath)) { throw "Missing $assetPath" }
 

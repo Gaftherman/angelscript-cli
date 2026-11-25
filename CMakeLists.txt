@@ -26,7 +26,20 @@ message(STATUS "Building against AngelScript ${ANGELSCRIPT_CLI_ENGINE_VERSION} (
 
 # The SDK's own CMake project is only dependable from 2.31 on. Earlier releases miss the target or add
 # test projects that do not exist in the archive, so the engine sources are built directly.
+#
+# On arm64 some releases have no native call convention for the target. 2.33 and earlier pick the 32-bit ARM
+# assembly (or, on Linux before 2.31, the x86-64 one), 2.35 builds an ELF-only assembly that Apple's assembler
+# rejects, and 2.36 predates the Apple silicon port of 2.37. Those builds use the engine's own portable mode
+# (AS_MAX_PORTABILITY), which compiles no assembly and calls through the generic convention.
+set(ANGELSCRIPT_CLI_PORTABLE OFF)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64|ARM64)$"
+   AND (ANGELSCRIPT_CLI_ENGINE_NUMBER LESS 23500
+        OR (APPLE AND ANGELSCRIPT_CLI_ENGINE_NUMBER LESS 23700)))
+    set(ANGELSCRIPT_CLI_PORTABLE ON)
+    message(STATUS "AngelScript ${ANGELSCRIPT_CLI_ENGINE_VERSION} has no native calls on this arm64 target: portable mode")
+endif()
 if(ANGELSCRIPT_CLI_ENGINE_NUMBER GREATER_EQUAL 23100
+   AND NOT ANGELSCRIPT_CLI_PORTABLE
    AND EXISTS "${ANGELSCRIPT_SDK}/angelscript/projects/cmake/CMakeLists.txt")
     add_subdirectory("${ANGELSCRIPT_SDK}/angelscript/projects/cmake" angelscript)
 else()
@@ -34,6 +47,9 @@ else()
     add_library(angelscript STATIC ${angelscript_sources})
     find_package(Threads REQUIRED)
     target_link_libraries(angelscript PUBLIC Threads::Threads)
+    if(ANGELSCRIPT_CLI_PORTABLE)
+        target_compile_definitions(angelscript PUBLIC AS_MAX_PORTABILITY)
+    endif()
 endif()
 
 # Releases before 2.31 use std::has_trivial_* traits that no standard library ships any more.
@@ -93,6 +109,7 @@ foreach(addon_source IN ITEMS
     target_sources(as_addons PRIVATE "${ASDEBUGGER_STD_ADDON_DIR}/${addon_source}")
 endforeach()
 set(cli_optional_addons "")
+set(cli_skipped_addons "")
 foreach(optional IN ITEMS
     "DATETIME:datetime/datetime.cpp"
     "FILESYSTEM:scriptfile/scriptfilesystem.cpp"
@@ -100,8 +117,17 @@ foreach(optional IN ITEMS
     string(REPLACE ":" ";" optional_parts "${optional}")
     list(GET optional_parts 0 optional_name)
     list(GET optional_parts 1 optional_source)
-    if(EXISTS "${ASDEBUGGER_STD_ADDON_DIR}/${optional_source}")
-        target_sources(as_addons PRIVATE "${ASDEBUGGER_STD_ADDON_DIR}/${optional_source}")
+    set(optional_usable "${ASDEBUGGER_STD_ADDON_DIR}/${optional_source}")
+    if(EXISTS "${optional_usable}" AND ANGELSCRIPT_CLI_PORTABLE)
+        # Some older add-ons register native calls only. In portable mode the engine rejects those.
+        file(READ "${optional_usable}" optional_text)
+        if(NOT optional_text MATCHES "\n[ \t]*if[ \t]*\\([ \t]*strstr\\(asGetLibraryOptions")
+            list(APPEND cli_skipped_addons ${optional_name})
+            set(optional_usable "")
+        endif()
+    endif()
+    if(optional_usable AND EXISTS "${optional_usable}")
+        target_sources(as_addons PRIVATE "${optional_usable}")
         list(APPEND cli_optional_addons ANGELSCRIPT_CLI_HAS_${optional_name}=1)
     endif()
 endforeach()
@@ -118,7 +144,14 @@ endif()
 set(helper_header "${ASDEBUGGER_STD_ADDON_DIR}/scripthelper/scripthelper.h")
 if(EXISTS "${helper_header}")
     file(READ "${helper_header}" helper_text)
-    if(helper_text MATCHES "RegisterExceptionRoutines")
+    set(helper_portable_ok ON)
+    if(ANGELSCRIPT_CLI_PORTABLE)
+        file(READ "${ASDEBUGGER_STD_ADDON_DIR}/scripthelper/scripthelper.cpp" helper_source)
+        if(NOT helper_source MATCHES "\n[ \t]*if[ \t]*\\([ \t]*strstr\\(asGetLibraryOptions")
+            set(helper_portable_ok OFF)
+        endif()
+    endif()
+    if(helper_portable_ok AND helper_text MATCHES "RegisterExceptionRoutines")
         list(APPEND cli_optional_addons ANGELSCRIPT_CLI_HAS_EXCEPTION_ROUTINES=1)
     endif()
 endif()
@@ -175,6 +208,10 @@ if(ANGELSCRIPT_CLI_HAS_DAP)
 endif()
 if(MINGW)
     target_link_options(angelscript-cli PRIVATE -municode)
+endif()
+# NetSocket.cpp uses Winsock directly. The debugger core only links it for engines that have a debugger.
+if(WIN32)
+    target_link_libraries(angelscript-cli PRIVATE ws2_32)
 endif()
 
 install(TARGETS angelscript-cli RUNTIME DESTINATION bin)

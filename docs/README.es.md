@@ -13,7 +13,7 @@ Hello, world!
 
 ### Windows
 
-Descarga `angelscript-cli-1.1.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo.
+Descarga `angelscript-cli-1.1.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo. En Windows de 32 bits usa `angelscript-cli-1.1.0-windows-x86-setup.exe`.
 
 1. Acepta la licencia.
 
@@ -43,7 +43,7 @@ Descarga `angelscript-cli-1.1.0-macos-arm64.pkg` (Apple silicon) o `angelscript-
 $ sudo apt install ./angelscript-cli-1.1.0-linux-x64.deb
 ~~~
 
-Usa `linux-arm64` en ARM. Para quitarlo, ejecuta `sudo apt remove angelscript-cli`.
+Usa `linux-arm64` en ARM y `linux-x86` en x86 de 32 bits. Para quitarlo, ejecuta `sudo apt remove angelscript-cli`.
 
 ### Scripts, sin permisos de administrador
 
@@ -247,7 +247,7 @@ Incluido: cadenas y utilidades de cadenas, arrays, diccionarios, matemáticas, a
 
 ## Compilar desde el código
 
-Usa un compilador C++20, CMake 3.21+ y Ninja. Usa una terminal de desarrollador x64 para MSVC. Node.js habilita la prueba de DAP. Elige **windows-x64**, **linux-x64**, **linux-arm64** o **macos**.
+Usa un compilador C++20, CMake 3.21+ y Ninja. Usa una terminal de desarrollador x64 para MSVC. Node.js habilita la prueba de DAP. Usa una terminal de desarrollador x86 (`amd64_x86`) para **windows-x86** e instala `g++-multilib` para **linux-x86**. Elige **windows-x64**, **windows-x86**, **linux-x64**, **linux-x86**, **linux-arm64** o **macos**.
 
 ~~~sh
 git clone https://github.com/Gaftherman/angelscript-cli.git

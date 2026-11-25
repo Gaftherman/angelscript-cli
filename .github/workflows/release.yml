@@ -72,7 +72,9 @@ jobs:
           release.mkdir()
           expected_platforms = {
               "windows-x64": ["zip", "setup.exe"],
+              "windows-x86": ["zip", "setup.exe"],
               "linux-x64": ["tar.gz", "deb"],
+              "linux-x86": ["tar.gz", "deb"],
               "linux-arm64": ["tar.gz", "deb"],
               "macos-x64": ["tar.gz", "pkg"],
               "macos-arm64": ["tar.gz", "pkg"],
@@ -96,14 +98,15 @@ jobs:
                   raise SystemExit(f"Invalid SHA256SUMS for {platform}")
               sums.extend(expected)
           # The setup program with the engine components replaces the plain one when CI built it.
-          bundled = Path("release-artifacts/angelscript-cli-setup-windows-x64")
-          setup_name = f"angelscript-cli-{version}-windows-x64-setup.exe"
-          if (bundled / setup_name).exists():
-              with (bundled / setup_name).open("rb") as archive:
-                  digest = hashlib.file_digest(archive, "sha256").hexdigest()
-              shutil.copyfile(bundled / setup_name, release / setup_name)
-              sums = [line for line in sums if not line.endswith("  " + setup_name)]
-              sums.append(f"{digest}  {setup_name}")
+          for platform in ("windows-x64", "windows-x86"):
+              bundled = Path(f"release-artifacts/angelscript-cli-setup-{platform}")
+              setup_name = f"angelscript-cli-{version}-{platform}-setup.exe"
+              if (bundled / setup_name).exists():
+                  with (bundled / setup_name).open("rb") as archive:
+                      digest = hashlib.file_digest(archive, "sha256").hexdigest()
+                  shutil.copyfile(bundled / setup_name, release / setup_name)
+                  sums = [line for line in sums if not line.endswith("  " + setup_name)]
+                  sums.append(f"{digest}  {setup_name}")
           # Builds against other AngelScript releases: angelscript-cli-<v>-as<engine>-<platform>.<ext>.
           for artifact in sorted(Path("release-artifacts").glob("angelscript-cli-engine-*")):
               for asset in sorted(artifact.glob("angelscript-cli-*-as*-*")):

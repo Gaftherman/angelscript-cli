@@ -1,21 +1,53 @@
 {
   "version": 3,
-  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
   "configurePresets": [
     {
       "name": "windows-x64",
       "generator": "Ninja Multi-Config",
-      "architecture": { "value": "x64", "strategy": "external" },
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": { "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>" },
-      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+      "cacheVariables": {
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-x86",
+      "inherits": "windows-x64",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      }
     },
     {
       "name": "linux-x64",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" },
-      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-x86",
+      "inherits": "linux-x64",
+      "toolchainFile": "${sourceDir}/cmake/linux-x86.cmake"
     },
     {
       "name": "linux-arm64",
@@ -25,20 +57,88 @@
       "name": "macos",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" },
-      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
     }
   ],
   "buildPresets": [
-    { "name": "windows-x64", "configurePreset": "windows-x64", "configuration": "Release" },
-    { "name": "linux-x64", "configurePreset": "linux-x64" },
-    { "name": "linux-arm64", "configurePreset": "linux-arm64" },
-    { "name": "macos", "configurePreset": "macos" }
+    {
+      "name": "windows-x64",
+      "configurePreset": "windows-x64",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-x86",
+      "configurePreset": "windows-x86",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-x64",
+      "configurePreset": "linux-x64"
+    },
+    {
+      "name": "linux-x86",
+      "configurePreset": "linux-x86"
+    },
+    {
+      "name": "linux-arm64",
+      "configurePreset": "linux-arm64"
+    },
+    {
+      "name": "macos",
+      "configurePreset": "macos"
+    }
   ],
   "testPresets": [
-    { "name": "windows-x64", "configurePreset": "windows-x64", "configuration": "Release", "output": { "outputOnFailure": true } },
-    { "name": "linux-x64", "configurePreset": "linux-x64", "output": { "outputOnFailure": true } },
-    { "name": "linux-arm64", "configurePreset": "linux-arm64", "output": { "outputOnFailure": true } },
-    { "name": "macos", "configurePreset": "macos", "output": { "outputOnFailure": true } }
+    {
+      "name": "windows-x64",
+      "configurePreset": "windows-x64",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-x86",
+      "configurePreset": "windows-x86",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-x64",
+      "configurePreset": "linux-x64",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-x86",
+      "configurePreset": "linux-x86",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-arm64",
+      "configurePreset": "linux-arm64",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos",
+      "configurePreset": "macos",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
   ]
 }

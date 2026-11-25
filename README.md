@@ -13,7 +13,7 @@ Hello, world!
 
 ### Windows
 
-Download `angelscript-cli-1.1.0-windows-x64-setup.exe` from [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) and run it.
+Download `angelscript-cli-1.1.0-windows-x64-setup.exe` from [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) and run it. Use `angelscript-cli-1.1.0-windows-x86-setup.exe` on 32-bit Windows.
 
 1. Accept the license.
 
@@ -43,7 +43,7 @@ Download `angelscript-cli-1.1.0-macos-arm64.pkg` (Apple silicon) or `angelscript
 $ sudo apt install ./angelscript-cli-1.1.0-linux-x64.deb
 ~~~
 
-Use `linux-arm64` on ARM. Remove it with `sudo apt remove angelscript-cli`.
+Use `linux-arm64` on ARM and `linux-x86` on 32-bit x86. Remove it with `sudo apt remove angelscript-cli`.
 
 ### Scripts, without administrator rights
 
@@ -247,7 +247,7 @@ Built in: strings and string utilities, arrays, dictionaries, math, files, files
 
 ## Build from source
 
-Use a C++20 compiler, CMake 3.21+ and Ninja. Use an x64 developer terminal for MSVC. Node.js enables the DAP test. Choose **windows-x64**, **linux-x64**, **linux-arm64** or **macos**.
+Use a C++20 compiler, CMake 3.21+ and Ninja. Use an x64 developer terminal for MSVC. Node.js enables the DAP test. Use an x86 developer terminal (`amd64_x86`) for **windows-x86**, and install `g++-multilib` for **linux-x86**. Choose **windows-x64**, **windows-x86**, **linux-x64**, **linux-x86**, **linux-arm64** or **macos**.
 
 ~~~sh
 git clone https://github.com/Gaftherman/angelscript-cli.git

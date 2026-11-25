@@ -8,10 +8,11 @@ $ErrorActionPreference = 'Stop'
 $archiveFile = (Get-Item -LiteralPath $Archive).FullName
 $checksumFile = (Get-Item -LiteralPath $Checksums).FullName
 $assetName = [IO.Path]::GetFileName($archiveFile)
-if ($assetName -cnotmatch '^angelscript-cli-([0-9]+\.[0-9]+\.[0-9]+)-windows-x64\.zip$') {
-    throw 'Pass the packaged Windows x64 archive.'
+if ($assetName -cnotmatch '^angelscript-cli-([0-9]+\.[0-9]+\.[0-9]+)-windows-(x64|x86)\.zip$') {
+    throw 'Pass the packaged Windows x64 or x86 archive.'
 }
 $expectedVersion = $Matches[1]
+$archiveArch = $Matches[2]
 $installer = Join-Path $PSScriptRoot 'install.ps1'
 $id = 'AngelScriptCliInstallTest-' + [Guid]::NewGuid().ToString('N')
 $root = Join-Path (Get-Item -LiteralPath $TempRoot).FullName $id
@@ -23,6 +24,7 @@ $keyName = "Software\$id"
 $savedOverride = $env:ANGELSCRIPT_CLI_TEST_PATH_KEY
 $savedVersion = $env:ANGELSCRIPT_CLI_VERSION
 $savedInstallDir = $env:ANGELSCRIPT_CLI_INSTALL_DIR
+$savedArch = $env:ANGELSCRIPT_CLI_ARCH
 $original = '%LOCALAPPDATA%\existing;C:\Tools'
 $kind = [Microsoft.Win32.RegistryValueKind]::ExpandString
 $reg = $null
@@ -87,6 +89,7 @@ try {
                 throw "Unexpected download URL: $Uri"
             }
         }
+        $env:ANGELSCRIPT_CLI_ARCH = $archiveArch
         $env:ANGELSCRIPT_CLI_VERSION = 'latest'
         $env:ANGELSCRIPT_CLI_INSTALL_DIR = $install
         Get-Content -LiteralPath $installer -Raw | Invoke-Expression
@@ -104,6 +107,7 @@ try {
     $env:ANGELSCRIPT_CLI_TEST_PATH_KEY = $savedOverride
     $env:ANGELSCRIPT_CLI_VERSION = $savedVersion
     $env:ANGELSCRIPT_CLI_INSTALL_DIR = $savedInstallDir
+    $env:ANGELSCRIPT_CLI_ARCH = $savedArch
     if ($reg) {
         $reg.Dispose()
         [Microsoft.Win32.Registry]::CurrentUser.DeleteSubKeyTree($keyName)

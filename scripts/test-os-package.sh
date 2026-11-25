@@ -21,10 +21,20 @@ else
     as_root=sudo
 fi
 
+foreign=
 case $package in
     *.deb)
         bin=/usr/bin
-        $as_root dpkg -i "$package"
+        package_arch=$(dpkg-deb --field "$package" Architecture)
+        if [ "$package_arch" != "$(dpkg --print-architecture)" ]; then
+            # A 32-bit package on a 64-bit host: unpack it and run it from there instead of installing.
+            foreign=$(mktemp -d)
+            trap 'rm -rf "$foreign"' 0
+            dpkg-deb -x "$package" "$foreign"
+            bin=$foreign/usr/bin
+        else
+            $as_root dpkg -i "$package"
+        fi
         ;;
     *.pkg)
         bin=/usr/local/bin
@@ -44,10 +54,11 @@ for name in angelscript asc angelscript-cli; do
 done
 
 case $package in
-    *.deb) $as_root dpkg -r angelscript-cli ;;
+    *.deb) [ -n "$foreign" ] || $as_root dpkg -r angelscript-cli ;;
     *.pkg) $as_root rm -f "$bin/angelscript" "$bin/asc" "$bin/angelscript-cli" ;;
 esac
 for name in angelscript asc angelscript-cli; do
+    [ -z "$foreign" ] || break
     if [ -e "$bin/$name" ] || [ -L "$bin/$name" ]; then
         printf '%s/%s was left behind\n' "$bin" "$name" >&2
         status=1

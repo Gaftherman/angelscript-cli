@@ -1,8 +1,8 @@
 #!/bin/sh
 # Builds a native package from a built binary and adds its checksum to dist/SHA256SUMS.
 #
-#   sh scripts/package-os.sh deb <binary> <version> <x64|arm64>
-#   sh scripts/package-os.sh pkg <binary> <version> <x64|arm64>
+#   sh scripts/package-os.sh deb <binary> <version> <x64|x86|arm64>
+#   sh scripts/package-os.sh pkg <binary> <version> <x64|x86|arm64>
 set -eu
 
 fail() {
@@ -10,7 +10,7 @@ fail() {
     exit 1
 }
 
-[ "$#" -eq 4 ] || fail 'Usage: sh scripts/package-os.sh <deb|pkg> <binary> <version> <x64|arm64>'
+[ "$#" -eq 4 ] || fail 'Usage: sh scripts/package-os.sh <deb|pkg> <binary> <version> <x64|x86|arm64>'
 kind=$1
 binary=$2
 version=$3
@@ -20,8 +20,8 @@ case $version in
     *[!0-9.]* | '' | .* | *. | *..*) fail 'The version must be x.y.z.' ;;
 esac
 case $arch in
-    x64 | arm64) ;;
-    *) fail 'The architecture must be x64 or arm64.' ;;
+    x64 | x86 | arm64) ;;
+    *) fail 'The architecture must be x64, x86 or arm64.' ;;
 esac
 [ -f "$binary" ] || fail "Missing binary: $binary"
 
@@ -35,6 +35,7 @@ trap 'exit 1' HUP INT TERM
 if [ "$kind" = deb ]; then
     case $arch in
         x64) deb_arch=amd64 ;;
+        x86) deb_arch=i386 ;;
         arm64) deb_arch=arm64 ;;
     esac
     asset=angelscript-cli-$version-linux-$arch.deb

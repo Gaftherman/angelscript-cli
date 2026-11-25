@@ -144,8 +144,9 @@ case "$(uname -s)" in
 esac
 case "$(uname -m)" in
     x86_64) arch=x64 ;;
+    i386|i486|i586|i686) arch=x86 ;;
     aarch64|arm64) arch=arm64 ;;
-    *) fail 'This installer supports x64 and arm64.' ;;
+    *) fail 'This installer supports x64, x86 and arm64.' ;;
 esac
 case $version in
     latest) ;;

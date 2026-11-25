@@ -11,6 +11,8 @@ The CLI builds against any official release from [angelcode.com](https://www.ang
 
 2.35.1 does not build with Clang (macOS, Linux with clang) because of `WRAP_MFN_PR` in its `aswrappedcall.h`. The extracted copy gets the Clang branch that 2.36.0 added to that macro, and nothing else.
 
+On arm64, releases up to 2.33 (and 2.35 and 2.36 on macOS, which predate the Apple silicon port of 2.37) build in the engine's portable mode (`AS_MAX_PORTABILITY`): no assembly, generic calls only. The `filesystem` and `datetime` add-ons are left out of those builds when the release has no portable registration for them.
+
 `angelscript --dump-predefined` needs 2.39.0 or later.
 
 | AngelScript | Support | Builds | Tests | Debugger (DAP) | Note |

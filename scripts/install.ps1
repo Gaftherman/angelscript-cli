@@ -4,6 +4,7 @@ param(
     [string]$Archive,
     [string]$Checksums,
     [string]$InstallDir = $env:ANGELSCRIPT_CLI_INSTALL_DIR,
+    [ValidateSet('', 'x64', 'x86')][string]$TargetArch = $env:ANGELSCRIPT_CLI_ARCH,
     [switch]$NoPath,
     [switch]$Uninstall
 )
@@ -132,8 +133,8 @@ public static extern System.IntPtr SendMessageTimeout(
 
     $arch = $env:PROCESSOR_ARCHITEW6432
     if (-not $arch) { $arch = $env:PROCESSOR_ARCHITECTURE }
-    if ($arch -eq 'ARM64') { throw 'No Windows arm64 build of angelscript-cli exists yet.' }
-    if ($arch -ne 'AMD64') { throw "Unsupported Windows architecture: $arch. The available build is x64." }
+    if (-not $TargetArch -and $arch -eq 'ARM64') { throw 'No Windows arm64 build of angelscript-cli exists yet.' }
+    $platform = if ($TargetArch) { $TargetArch } else { switch ($arch) { 'AMD64' { 'x64' } 'x86' { 'x86' } default { throw "Unsupported Windows architecture: $arch. The available builds are x64 and x86." } } }
     if (-not $Version) { $Version = 'latest' }
     if ($Version -cne 'latest' -and $Version -cnotmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
         throw 'Version must be x.y.z or latest.'
@@ -159,23 +160,23 @@ public static extern System.IntPtr SendMessageTimeout(
             }
             if ($Version -eq 'latest') {
                 $assets = @(foreach ($line in (Get-Content -LiteralPath $Checksums)) {
-                    if ($line -cmatch '^[a-fA-F0-9]{64}  (angelscript-cli-[0-9]+\.[0-9]+\.[0-9]+-windows-x64\.zip)$') {
+                    if ($line -cmatch ('^[a-fA-F0-9]{64}  (angelscript-cli-[0-9]+\.[0-9]+\.[0-9]+-windows-' + $platform + '\.zip)$')) {
                         $Matches[1]
                     }
                 })
-                if ($assets.Count -ne 1) { throw 'Expected one Windows x64 asset in the latest release SHA256SUMS.' }
+                if ($assets.Count -ne 1) { throw "Expected one Windows $platform asset in the latest release SHA256SUMS." }
                 $asset = $assets[0]
             } else {
-                $asset = "angelscript-cli-$Version-windows-x64.zip"
+                $asset = "angelscript-cli-$Version-windows-$platform.zip"
             }
             if ($Engine) {
                 if ($Version -eq 'latest') {
                     $engineAssets = @(foreach ($line in (Get-Content -LiteralPath $Checksums)) {
-                        if ($line -cmatch ('^[a-fA-F0-9]{64}  (angelscript-cli-[0-9]+\.[0-9]+\.[0-9]+-as' + [regex]::Escape($Engine) + '-windows-x64\.zip)$')) { $Matches[1] }
+                        if ($line -cmatch ('^[a-fA-F0-9]{64}  (angelscript-cli-[0-9]+\.[0-9]+\.[0-9]+-as' + [regex]::Escape($Engine) + '-windows-' + $platform + '\.zip)$')) { $Matches[1] }
                     })
                     $asset = if ($engineAssets.Count -eq 1) { $engineAssets[0] } else { '' }
                 } else {
-                    $asset = "angelscript-cli-$Version-as$Engine-windows-x64.zip"
+                    $asset = "angelscript-cli-$Version-as$Engine-windows-$platform.zip"
                 }
                 if (-not $asset -or $asset -notin (Get-Content -LiteralPath $Checksums | ForEach-Object { ($_ -split '  ', 2)[-1] })) {
                     throw "No prebuilt build for AngelScript $Engine. Build it from source with: python scripts/build-engine.py $Engine"
