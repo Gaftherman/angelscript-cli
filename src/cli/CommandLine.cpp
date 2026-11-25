@@ -37,6 +37,11 @@ CommandLine ParseCommandLine(std::span<const std::string_view> args,
             result.action = arg == "--help" ? Action::Help : Action::Version;
             return result;
         }
+        if (arg == "--dump-predefined")
+        {
+            result.action = Action::DumpPredefined;
+            return result;
+        }
         if (arg == "--check")
             result.options.checkOnly = true;
         else if (arg == "--no-jit")

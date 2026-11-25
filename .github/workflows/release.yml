@@ -95,6 +95,22 @@ jobs:
               if sorted(manifest) != sorted(expected):
                   raise SystemExit(f"Invalid SHA256SUMS for {platform}")
               sums.extend(expected)
+          # The setup program with the engine components replaces the plain one when CI built it.
+          bundled = Path("release-artifacts/angelscript-cli-setup-windows-x64")
+          setup_name = f"angelscript-cli-{version}-windows-x64-setup.exe"
+          if (bundled / setup_name).exists():
+              with (bundled / setup_name).open("rb") as archive:
+                  digest = hashlib.file_digest(archive, "sha256").hexdigest()
+              shutil.copyfile(bundled / setup_name, release / setup_name)
+              sums = [line for line in sums if not line.endswith("  " + setup_name)]
+              sums.append(f"{digest}  {setup_name}")
+          # Builds against other AngelScript releases: angelscript-cli-<v>-as<engine>-<platform>.<ext>.
+          for artifact in sorted(Path("release-artifacts").glob("angelscript-cli-engine-*")):
+              for asset in sorted(artifact.glob("angelscript-cli-*-as*-*")):
+                  with asset.open("rb") as archive:
+                      digest = hashlib.file_digest(archive, "sha256").hexdigest()
+                  shutil.copyfile(asset, release / asset.name)
+                  sums.append(f"{digest}  {asset.name}")
           (release / "SHA256SUMS").write_text("\n".join(sorted(sums)) + "\n", encoding="ascii")
 
           changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")

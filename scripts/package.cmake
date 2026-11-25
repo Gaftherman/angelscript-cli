@@ -35,7 +35,12 @@ endif()
 
 get_filename_component(root "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
 set(dist "${root}/dist")
-set(asset "angelscript-cli-${VERSION}-${OS}-${ARCH}.${extension}")
+# ENGINE names a build against another official AngelScript release (angelscript-cli-<v>-as<engine>-...).
+if(DEFINED ENGINE AND NOT ENGINE STREQUAL "")
+    set(asset "angelscript-cli-${VERSION}-as${ENGINE}-${OS}-${ARCH}.${extension}")
+else()
+    set(asset "angelscript-cli-${VERSION}-${OS}-${ARCH}.${extension}")
+endif()
 file(MAKE_DIRECTORY "${dist}")
 file(LOCK "${dist}/.package.lock" GUARD PROCESS TIMEOUT 60)
 

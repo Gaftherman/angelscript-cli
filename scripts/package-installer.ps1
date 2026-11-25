@@ -7,7 +7,8 @@ Builds the Windows setup program with Inno Setup and adds its checksum to dist/S
 param(
     [Parameter(Mandatory)][string]$Binary,
     [Parameter(Mandatory)][ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')][string]$Version,
-    [string]$Compiler
+    [string]$Compiler,
+    [string]$EngineDir
 )
 
 $ErrorActionPreference = 'Stop'
@@ -29,7 +30,14 @@ $binaryPath = (Resolve-Path -LiteralPath $Binary).Path
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 $distFull = (Resolve-Path -LiteralPath $dist).Path
 
-& $Compiler "/DAppVersion=$Version" "/DSourceExe=$binaryPath" "/DLicenseFile=$(Join-Path $root 'LICENSE')" `
+$engineArgs = @()
+if ($EngineDir) {
+    $engineFull = (Resolve-Path -LiteralPath $EngineDir).Path
+    if (-not (Get-ChildItem -LiteralPath $engineFull -Filter "angelscript-*.exe")) { throw "No angelscript-<version>.exe in $engineFull" }
+    $engineArgs = @("/DEngineDir=$engineFull")
+}
+
+& $Compiler @engineArgs "/DAppVersion=$Version" "/DSourceExe=$binaryPath" "/DLicenseFile=$(Join-Path $root 'LICENSE')" `
     "/DNoticesFile=$(Join-Path $root 'THIRD_PARTY_NOTICES.md')" "/DOutputDir=$distFull" `
     (Join-Path $root 'packaging\windows\angelscript.iss')
 if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }

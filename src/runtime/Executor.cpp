@@ -1,5 +1,7 @@
 #include "runtime/Executor.h"
+#ifndef ANGELSCRIPT_CLI_NO_DAP
 #include "debug/DapSession.h"
+#endif
 #include "runtime/Engine.h"
 #include "runtime/Jit.h"
 #include "runtime/ScriptLoader.h"
@@ -12,8 +14,17 @@ namespace runtime
 {
 static asIScriptFunction* FindEntryPoint(asIScriptModule& module)
 {
+#if ANGELSCRIPT_VERSION >= 22200
     auto* intMain = module.GetFunctionByDecl("int main()");
     auto* voidMain = module.GetFunctionByDecl("void main()");
+#else
+    // Releases before 2.22 look functions up by id.
+    auto* engine = module.GetEngine();
+    const int intId = module.GetFunctionIdByDecl("int main()");
+    const int voidId = module.GetFunctionIdByDecl("void main()");
+    auto* intMain = intId >= 0 ? engine->GetFunctionDescriptorById(intId) : nullptr;
+    auto* voidMain = voidId >= 0 ? engine->GetFunctionDescriptorById(voidId) : nullptr;
+#endif
     if ((intMain == nullptr) == (voidMain == nullptr))
     {
         std::cerr << "no entry point `int main()` or `void main()`\n";
@@ -40,7 +51,11 @@ static void ReportException(asIScriptContext& context)
 
 static int RunEntryPoint(asIScriptContext& context, asIScriptFunction& entry)
 {
+#if ANGELSCRIPT_VERSION >= 22200
     const int prepareResult = context.Prepare(&entry);
+#else
+    const int prepareResult = context.Prepare(entry.GetId());
+#endif
     if (prepareResult < 0)
     {
         std::cerr << "Could not prepare " << entry.GetDeclaration() << " (" << prepareResult << ")\n";
@@ -97,6 +112,7 @@ int Execute(const ExecutionRequest& request)
         return 1;
     }
 
+#ifndef ANGELSCRIPT_CLI_NO_DAP
     std::optional<DapSession> session;
     if (request.dapPort)
     {
@@ -104,9 +120,20 @@ int Execute(const ExecutionRequest& request)
         if (!session->Start(request.dapHost, *request.dapPort))
             return 1;
     }
+#else
+    if (request.dapPort)
+    {
+        std::cerr << "Debugging needs a build against AngelScript 2.33.0 or later\n";
+        return 2;
+    }
+#endif
 
     // Global initializers can execute script and hit breakpoints.
+#if ANGELSCRIPT_VERSION >= 22200
     if (script.module->ResetGlobalVars(context.get()) < 0)
+#else
+    if (script.module->ResetGlobalVars() < 0)
+#endif
     {
         if (context->GetState() == asEXECUTION_EXCEPTION)
             ReportException(*context);
@@ -115,8 +142,10 @@ int Execute(const ExecutionRequest& request)
         return 1;
     }
 
+#ifndef ANGELSCRIPT_CLI_NO_DAP
     if (session)
         session->Poll();
+#endif
     return RunEntryPoint(*context, *entry);
 }
 }

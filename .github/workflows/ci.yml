@@ -149,6 +149,89 @@ jobs:
           if-no-files-found: error
           compression-level: 0
 
+  engines:
+    name: Engine ${{ matrix.engine }} (${{ matrix.os }} ${{ matrix.arch }})
+    if: github.ref == 'refs/heads/main' || github.ref_type == 'tag'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ['2.38.0', '2.37.0', '2.36.1', '2.35.1', '2.33.0', '2.30.2']
+        include:
+          - {runner: windows-latest, os: windows, arch: x64, extension: zip}
+          - {runner: ubuntu-24.04, os: linux, arch: x64, extension: tar.gz}
+          - {runner: ubuntu-24.04-arm, os: linux, arch: arm64, extension: tar.gz}
+          - {runner: macos-15, os: macos, arch: arm64, extension: tar.gz}
+          - {runner: macos-15-intel, os: macos, arch: x64, extension: tar.gz}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+        with:
+          arch: x64
+      - name: Build against the official release
+        run: |
+          python -m pip install ninja
+          python scripts/build-engine.py ${{ matrix.engine }} --prefix build/engine/out --work build/engine
+      - name: Package
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path CMakeLists.txt -Pattern 'project\(angelscript-cli VERSION ([0-9.]+)').Matches[0].Groups[1].Value
+          cmake "-DBUILD_DIR=build/engine/build/${{ matrix.engine }}" "-DCONFIG=Release" "-DVERSION=$version" "-DOS=${{ matrix.os }}" "-DARCH=${{ matrix.arch }}" "-DENGINE=${{ matrix.engine }}" -P scripts/package.cmake
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: angelscript-cli-engine-${{ matrix.engine }}-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            dist/*-as${{ matrix.engine }}-*
+            dist/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+
+  setup-with-engines:
+    name: Windows setup with engine builds
+    if: github.ref == 'refs/heads/main' || github.ref_type == 'tag'
+    needs: [build, engines]
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: angelscript-cli-*windows-x64
+          path: parts
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup --no-progress -y }
+      - name: Build and test the setup program with the engine builds
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem parts/angelscript-cli-windows-x64 -Filter 'angelscript-cli-*-windows-x64.zip' | Select-Object -First 1
+          $version = [regex]::Match($zip.Name, '^angelscript-cli-([0-9.]+)-windows-x64\.zip$').Groups[1].Value
+          Expand-Archive $zip.FullName -DestinationPath main
+          New-Item -ItemType Directory -Force engines | Out-Null
+          foreach ($archive in Get-ChildItem parts -Recurse -Filter 'angelscript-cli-*-as*-windows-x64.zip') {
+              $engine = [regex]::Match($archive.Name, '-as([0-9.]+)-windows-x64').Groups[1].Value
+              $folder = "unpack-$engine"
+              Expand-Archive $archive.FullName -DestinationPath $folder
+              Copy-Item "$folder/angelscript.exe" "engines/angelscript-$engine.exe"
+          }
+          ./scripts/package-installer.ps1 -Binary main/angelscript.exe -Version $version -EngineDir engines
+          ./scripts/test-installer.ps1 -Setup "dist/angelscript-cli-$version-windows-x64-setup.exe" -Version $version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: angelscript-cli-setup-windows-x64
+          path: dist/*-setup.exe
+          if-no-files-found: error
+          compression-level: 0
+
   e2e-extension:
     name: Extension runner (${{ matrix.runner }})
     needs: build

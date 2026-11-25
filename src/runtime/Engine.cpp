@@ -18,7 +18,11 @@ static void ReportMessage(const asSMessageInfo* message, void*)
 
 void EngineRelease::operator()(asIScriptEngine* engine) const
 {
+#if ANGELSCRIPT_VERSION >= 23000
     engine->ShutDownAndRelease();
+#else
+    engine->Release();
+#endif
 }
 
 void ContextRelease::operator()(asIScriptContext* context) const
@@ -28,7 +32,7 @@ void ContextRelease::operator()(asIScriptContext* context) const
 
 EnginePtr CreateEngine()
 {
-    EnginePtr engine(asCreateScriptEngine());
+    EnginePtr engine(asCreateScriptEngine(ANGELSCRIPT_VERSION));
     if (!engine || engine->SetMessageCallback(asFUNCTION(ReportMessage), nullptr, asCALL_CDECL) < 0 ||
         engine->SetEngineProperty(asEP_INIT_GLOBAL_VARS_AFTER_BUILD, false) < 0)
     {

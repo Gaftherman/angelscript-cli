@@ -16,6 +16,7 @@
 #ifndef OutputDir
   #define OutputDir "."
 #endif
+; Optional: /DEngineDir=<folder with angelscript-<version>.exe builds against other AngelScript releases>.
 
 [Setup]
 AppId={{7F3C9A52-6B1E-4D8A-9C0F-2A5E4B7D1C38}
@@ -48,6 +49,12 @@ UninstallDisplayIcon={app}\angelscript.exe
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
+#ifdef EngineDir
+[Components]
+Name: "main"; Description: "AngelScript command line (angelscript, asc)"; Types: full compact custom; Flags: fixed
+Name: "engines"; Description: "Builds against other AngelScript releases (angelscript-<version>.exe)"; Types: full
+#endif
+
 [Tasks]
 Name: "addtopath"; Description: "Add AngelScript to the &PATH environment variable"; GroupDescription: "Environment:"
 
@@ -57,6 +64,9 @@ Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "asc.exe"; Flags: ignorevers
 Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "angelscript-cli.exe"; Flags: ignoreversion
 Source: "{#LicenseFile}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#NoticesFile}"; DestDir: "{app}"; Flags: ignoreversion
+#ifdef EngineDir
+Source: "{#EngineDir}\angelscript-*.exe"; DestDir: "{app}"; Components: engines; Flags: ignoreversion
+#endif
 
 [Code]
 function EnvironmentRoot(): Integer;

@@ -117,4 +117,17 @@ for _ in 1 2; do
     "$test_shell" "$installer" --prefix "$prefix" --uninstall
     assert_uninstalled
 done
+# An engine build installs next to the default one and only adds angelscript-<engine>.
+engine_asset=angelscript-cli-$expected_version-as2.39.0-${asset#angelscript-cli-$expected_version-}
+cp "$archive" "$work/$engine_asset"
+printf '%s  %s\n' "$(sha256sum < "$archive" | cut -d' ' -f1)" "$engine_asset" > "$work/engine-sums"
+"$test_shell" "$installer" --prefix "$prefix" --engine 2.39.0 --archive "$work/$engine_asset" --checksums "$work/engine-sums" --no-modify-path
+[ -x "$prefix/bin/angelscript-2.39.0" ] || fail 'The engine build was not linked.'
+[ ! -e "$prefix/bin/angelscript" ] || fail 'The engine build must not take over the default command.'
+"$prefix/bin/angelscript-2.39.0" --version | grep -q 'AngelScript 2.39.0' || fail 'The engine build reports another release.'
+if "$test_shell" "$installer" --prefix "$prefix" --engine 2.99.0 --version 9.9.9 --no-modify-path >/dev/null 2>&1; then
+    fail 'A missing prebuilt engine must fail.'
+fi
+"$test_shell" "$installer" --prefix "$prefix" --engine 2.39.0 --uninstall --no-modify-path
+[ ! -e "$prefix/bin/angelscript-2.39.0" ] || fail 'The engine link remained after uninstall.'
 printf '%s\n' 'Offline POSIX installer test passed.'

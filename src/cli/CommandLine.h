@@ -32,6 +32,7 @@ enum class Action
     Command,
     Help,
     Version,
+    DumpPredefined,
     Error,
 };
 

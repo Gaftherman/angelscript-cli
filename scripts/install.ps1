@@ -1,5 +1,6 @@
 param(
     [string]$Version = $env:ANGELSCRIPT_CLI_VERSION,
+    [string]$Engine = $env:ANGELSCRIPT_ENGINE_VERSION,
     [string]$Archive,
     [string]$Checksums,
     [string]$InstallDir = $env:ANGELSCRIPT_CLI_INSTALL_DIR,
@@ -98,14 +99,19 @@ public static extern System.IntPtr SendMessageTimeout(
         $output
     }
 
-    if (-not $InstallDir) { $InstallDir = Join-Path $env:LOCALAPPDATA 'Programs\angelscript-cli' }
+    if ($Engine -and $Engine -cnotmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
+        throw 'The engine must be an AngelScript version such as 2.35.1.'
+    }
+    # An engine build installs on its own and only adds angelscript-<engine>.exe, so the default stays untouched.
+    $dirName = if ($Engine) { "angelscript-cli-as$Engine" } else { 'angelscript-cli' }
+    if (-not $InstallDir) { $InstallDir = Join-Path $env:LOCALAPPDATA "Programs\$dirName" }
     $InstallDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($InstallDir)
     $InstallDir = $InstallDir.TrimEnd('\', '/')
     $parent = [IO.Path]::GetDirectoryName($InstallDir)
     if (-not $parent -or $InstallDir.Contains(';')) { throw 'Choose an install directory below the drive root with no semicolons.' }
 
     $packageFiles = @('angelscript.exe', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'README.md')
-    $aliasFiles = @('asc.exe', 'angelscript-cli.exe')
+    $aliasFiles = if ($Engine) { @("angelscript-$Engine.exe") } else { @('asc.exe', 'angelscript-cli.exe') }
     $existing = Get-Item -LiteralPath $InstallDir -Force -ErrorAction SilentlyContinue
     if ($existing) {
         if (-not $existing.PSIsContainer -or ($existing.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
@@ -119,7 +125,7 @@ public static extern System.IntPtr SendMessageTimeout(
     }
     if ($Uninstall) {
         if ($existing) { Remove-Item -LiteralPath $InstallDir -Recurse -Force }
-        if (-not $NoPath) { Update-UserPath $InstallDir $true }
+        if (-not $NoPath -and -not $Engine) { Update-UserPath $InstallDir $true }
         Write-Output 'Uninstalled angelscript. Open a new terminal to pick up the PATH change.'
         return
     }
@@ -162,6 +168,19 @@ public static extern System.IntPtr SendMessageTimeout(
             } else {
                 $asset = "angelscript-cli-$Version-windows-x64.zip"
             }
+            if ($Engine) {
+                if ($Version -eq 'latest') {
+                    $engineAssets = @(foreach ($line in (Get-Content -LiteralPath $Checksums)) {
+                        if ($line -cmatch ('^[a-fA-F0-9]{64}  (angelscript-cli-[0-9]+\.[0-9]+\.[0-9]+-as' + [regex]::Escape($Engine) + '-windows-x64\.zip)$')) { $Matches[1] }
+                    })
+                    $asset = if ($engineAssets.Count -eq 1) { $engineAssets[0] } else { '' }
+                } else {
+                    $asset = "angelscript-cli-$Version-as$Engine-windows-x64.zip"
+                }
+                if (-not $asset -or $asset -notin (Get-Content -LiteralPath $Checksums | ForEach-Object { ($_ -split '  ', 2)[-1] })) {
+                    throw "No prebuilt build for AngelScript $Engine. Build it from source with: python scripts/build-engine.py $Engine"
+                }
+            }
             $zipPath = Join-Path $work $asset
             Save-ReleaseFile "$base/$asset" $zipPath
         }
@@ -200,9 +219,14 @@ public static extern System.IntPtr SendMessageTimeout(
         foreach ($alias in $aliasFiles) {
             Copy-Item -LiteralPath (Join-Path $InstallDir 'angelscript.exe') -Destination (Join-Path $InstallDir $alias)
         }
-        if (-not $NoPath) { Update-UserPath $InstallDir $false }
-        Get-InstalledVersion $InstallDir
-        Write-Output 'Open a new terminal to pick up the PATH change.'
+        if ($Engine) {
+            Get-InstalledVersion $InstallDir
+            Write-Output "Run $(Join-Path $InstallDir "angelscript-$Engine.exe")"
+        } else {
+            if (-not $NoPath) { Update-UserPath $InstallDir $false }
+            Get-InstalledVersion $InstallDir
+            Write-Output 'Open a new terminal to pick up the PATH change.'
+        }
     } finally {
         if ($keepBackup) {
             Write-Warning "The previous installation could not be restored. It is at $backup."

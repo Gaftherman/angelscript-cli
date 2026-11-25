@@ -205,6 +205,14 @@ float: 3.14
 <p align="center"><img src="docs/images/vscode-tcp-echo.png" alt="tcp-echo.as open in VS Code with its output in the terminal" width="720"></p>
 <p align="center"><em>A TCP echo example and its output.</em></p>
 
+<p align="center"><img src="docs/images/vscode-run.gif" alt="Typing `asc files.as` in the VS Code terminal" width="720"></p>
+
+<p align="center"><img src="docs/images/cmd-run.png" alt="A plain Command Prompt running the same scripts" width="720"></p>
+
+### Editor support
+
+[`examples/angelscript-cli.as.predefined`](examples/angelscript-cli.as.predefined) describes every type and function the CLI registers (`string`, `array`, `dictionary`, `file`, `datetime`, `filesystem`, `TcpSocket`, `println`, `getArgs` and more), so [AngelLSP](https://github.com/Gaftherman/angelscript-lsp) checks your scripts without reporting those names as unknown. [`examples/angelscript.rules.json`](examples/angelscript.rules.json) declares the engine version. Regenerate the stub for another build with `angelscript --dump-predefined > my.as.predefined`.
+
 ## Reference
 
 | Command | Does |

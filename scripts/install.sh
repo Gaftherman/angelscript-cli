@@ -7,6 +7,7 @@ fail() {
 }
 
 version=latest
+engine=${ANGELSCRIPT_ENGINE_VERSION-}
 archive=
 checksums=
 prefix=$HOME/.local
@@ -14,10 +15,11 @@ modify_path=yes
 uninstall=no
 while [ "$#" -gt 0 ]; do
     case $1 in
-        --version|--archive|--checksums|--prefix)
+        --version|--engine|--archive|--checksums|--prefix)
             if [ "$#" -lt 2 ] || [ -z "$2" ]; then fail "$1 requires a value"; fi
             case $1 in
                 --version) version=$2 ;;
+                --engine) engine=$2 ;;
                 --archive) archive=$2 ;;
                 --checksums) checksums=$2 ;;
                 --prefix) prefix=$2 ;;
@@ -43,9 +45,15 @@ if [ "$uninstall" = no ]; then
 fi
 if [ -d "$prefix" ]; then prefix=$(CDPATH='' cd -P "$prefix" && pwd -P); fi
 share=${prefix%/}/share
-install_dir=$share/angelscript-cli
 bin=${prefix%/}/bin
-command_names="angelscript asc angelscript-cli"
+# An engine build installs next to the default one and only adds angelscript-<engine>.
+case $engine in
+    '') install_dir=$share/angelscript-cli
+        command_names="angelscript asc angelscript-cli" ;;
+    *[!0-9.]*) fail 'The engine must be an AngelScript version such as 2.35.1.' ;;
+    *) install_dir=$share/angelscript-cli-as$engine
+       command_names="angelscript-$engine" ;;
+esac
 program=$install_dir/angelscript
 
 # Quote the literal directory for use in both a shell pattern and an assignment.
@@ -190,8 +198,19 @@ if [ -z "$archive" ]; then
     else
         asset=angelscript-cli-$version-$os-$arch.tar.gz
     fi
+    if [ -n "$engine" ]; then
+        # Prebuilt engine builds are named angelscript-cli-<version>-as<engine>-<os>-<arch>.tar.gz.
+        if [ "$version" = latest ]; then
+            asset=$(sed -n "s/^[0-9a-fA-F]\{64\}  \(angelscript-cli-[0-9.]*-as$engine-$os-$arch[.]tar[.]gz\)\$/\1/p" "$checksums" | head -n 1)
+        else
+            asset=angelscript-cli-$version-as$engine-$os-$arch.tar.gz
+        fi
+        if [ -z "$asset" ] || ! download "$base/$asset" "$work/$asset" 2>/dev/null; then
+            fail "No prebuilt build for AngelScript $engine. Build it from source with: python scripts/build-engine.py $engine"
+        fi
+    fi
     archive=$work/$asset
-    download "$base/$asset" "$archive"
+    [ -f "$archive" ] || download "$base/$asset" "$archive"
 else
     asset=${archive##*/}
     if [ -z "$checksums" ]; then
@@ -246,4 +265,4 @@ if [ "$modify_path" = yes ]; then
             printf '%s\n' 'Open a new terminal to pick up the PATH change.' ;;
     esac
 fi
-"$bin/angelscript" --version
+"$bin/${command_names%% *}" --version
