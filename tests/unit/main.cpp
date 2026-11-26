@@ -68,6 +68,14 @@ static void TestOptions()
     CHECK(Parse(std::to_array<std::string_view>({"--dap-port", "1", "debug.as"})).options.dapPort == 1);
     CHECK(Parse(std::to_array<std::string_view>({"--dap-port", "65535", "debug.as"})).options.dapPort == 65535);
 
+    const auto aot = Parse(std::to_array<std::string_view>({"--aot", "libs/game", "game.as"}));
+    CHECK(aot.action == cli::Action::Command);
+    CHECK(aot.options.aotLoad == "libs/game");
+    CHECK(aot.options.path == "game.as");
+    CHECK(Parse(std::to_array<std::string_view>({"--aot-export", "out/game", "game.as"})).options.aotExport == "out/game");
+    CHECK(Parse(std::to_array<std::string_view>({"--aot"})).action == cli::Action::Error);
+    CHECK(Parse(std::to_array<std::string_view>({"--aot-export", "--check", "game.as"})).action == cli::Action::Error);
+
     CHECK(Parse({}).action == cli::Action::Error);
     CHECK(Parse(std::to_array<std::string_view>({"--dap-port"})).action == cli::Action::Error);
     CHECK(Parse(std::to_array<std::string_view>({"--dap-port", "--check", "debug.as"})).action == cli::Action::Error);

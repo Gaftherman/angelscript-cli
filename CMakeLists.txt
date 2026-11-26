@@ -164,14 +164,14 @@ if(WIN32)
 endif()
 
 # Optional JIT compiler: angelscript-jit, a fork of angelsea (BSD-2). It turns script bytecode into native code through
-# MIR and uses the asIJITCompilerV2 interface of AngelScript 2.37 and later, on 64-bit x86 (Windows, Linux) and arm64.
+# MIR and uses the asIJITCompilerV2 interface from AngelScript 2.37 and the version 1 interface from 2.33, on 64-bit x86 (Windows, Linux) and arm64.
 set(ANGELSCRIPT_JIT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/angelscript-jit"
     CACHE PATH "Checkout of angelscript-jit (the JIT compiler)")
 set(ANGELSCRIPT_CLI_JIT "none" CACHE STRING "JIT compiler to build in: none or angelsea")
 set_property(CACHE ANGELSCRIPT_CLI_JIT PROPERTY STRINGS none angelsea)
 if(ANGELSCRIPT_CLI_JIT STREQUAL "angelsea")
-    if(ANGELSCRIPT_ENGINE_NUMBER LESS 23700)
-        message(FATAL_ERROR "ANGELSCRIPT_CLI_JIT=angelsea needs AngelScript 2.37 or later (found ${ANGELSCRIPT_ENGINE_VERSION}).")
+    if(ANGELSCRIPT_ENGINE_NUMBER LESS 23300)
+        message(FATAL_ERROR "ANGELSCRIPT_CLI_JIT=angelsea needs AngelScript 2.33 or later (found ${ANGELSCRIPT_ENGINE_VERSION}).")
     endif()
     if(ANGELSCRIPT_ENGINE_PORTABLE OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8
        OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64|arm64|aarch64|ARM64)$"
@@ -211,7 +211,7 @@ if(ANGELSCRIPT_CLI_JIT STREQUAL "angelsea")
 endif()
 # Whether a JIT build exists for this release and target, even when this build has none.
 set(engine_info_jit_supported false)
-if(ANGELSCRIPT_ENGINE_NUMBER GREATER_EQUAL 23700 AND NOT ANGELSCRIPT_ENGINE_PORTABLE AND CMAKE_SIZEOF_VOID_P EQUAL 8
+if(ANGELSCRIPT_ENGINE_NUMBER GREATER_EQUAL 23300 AND NOT ANGELSCRIPT_ENGINE_PORTABLE AND CMAKE_SIZEOF_VOID_P EQUAL 8
    AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64|arm64|aarch64|ARM64)$"
    AND NOT (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$"))
     set(engine_info_jit_supported true)

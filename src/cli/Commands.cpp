@@ -17,7 +17,7 @@ namespace cli
 static int RunScript(const ScriptOptions& options)
 {
     return runtime::Execute({options.path, options.args, options.dapHost, options.dapPort,
-                             options.checkOnly, options.noJit});
+                             options.checkOnly, options.noJit, options.aotExport, options.aotLoad});
 }
 
 static int CheckScript(const ScriptOptions& options)
@@ -47,6 +47,8 @@ static void PrintUsage(std::ostream& output)
               "  --dap-host <host>  Set the DAP listen host (default 127.0.0.1)\n"
               "  --check            Compile the script only\n"
               "  --no-jit           Use the interpreter\n"
+              "  --aot-export BASE  Write BASE.c and BASE.externs for ahead-of-time compilation, then exit\n"
+              "  --aot BASE         Load the library built from that export (BASE.dll, BASE.so or BASE.dylib)\n"
               "  --version          Print the runtime version\n"
               "  --dump-predefined  Print the API every script sees as an .as.predefined stub\n"
               "  --help             Print this help\n";

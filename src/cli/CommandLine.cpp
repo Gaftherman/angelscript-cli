@@ -46,7 +46,7 @@ CommandLine ParseCommandLine(std::span<const std::string_view> args,
             result.options.checkOnly = true;
         else if (arg == "--no-jit")
             result.options.noJit = true;
-        else if (arg == "--dap-port" || arg == "--dap-host")
+        else if (arg == "--dap-port" || arg == "--dap-host" || arg == "--aot" || arg == "--aot-export")
         {
             if (args.empty() || args.front().empty() || args.front().starts_with("--"))
                 return UsageError(std::string(arg) + " requires a value");
@@ -59,8 +59,12 @@ CommandLine ParseCommandLine(std::span<const std::string_view> args,
                 if (!result.options.dapPort)
                     return UsageError("--dap-port requires a number from 1 to 65535");
             }
-            else
+            else if (arg == "--dap-host")
                 result.options.dapHost = value;
+            else if (arg == "--aot")
+                result.options.aotLoad = value;
+            else
+                result.options.aotExport = value;
         }
         else if (arg.starts_with('-'))
             return UsageError("Unknown option " + std::string(arg));

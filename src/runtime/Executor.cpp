@@ -101,6 +101,22 @@ int Execute(const ExecutionRequest& request)
     if (!script.module || request.checkOnly)
         return script.module ? 0 : 1;
 
+    if (!request.aotExport.empty())
+    {
+        if (!policy.enabled || !provider->ExportModule(*script.module, request.aotExport))
+        {
+            std::cerr << "Could not export the module (this build has no JIT, or it is disabled)\n";
+            return 1;
+        }
+        std::cout << "Wrote " << request.aotExport << ".c and " << request.aotExport << ".externs\n";
+        return 0;
+    }
+    if (!request.aotLoad.empty())
+    {
+        const auto loaded = policy.enabled ? provider->LoadAot(*script.module, request.aotLoad) : 0;
+        if (loaded == 0)
+            std::cerr << "No function was loaded from " << request.aotLoad << ", running without it\n";
+    }
     auto* entry = FindEntryPoint(*script.module);
     if (!entry)
         return 1;

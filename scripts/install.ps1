@@ -185,7 +185,7 @@ public static extern System.IntPtr SendMessageTimeout(
                     $wanted = if ($Engine) { "AngelScript $Engine" } else { 'AngelScript' }
                     if ($Jit) {
                         $wanted += ' with the JIT'
-                        $hint = 'Build it from source with: python scripts/build-engine.py <version> --jit (the JIT needs AngelScript 2.37 or later and a 64-bit system).'
+                        $hint = 'Build it from source with: python scripts/build-engine.py <version> --jit (the JIT needs AngelScript 2.33 or later and a 64-bit system).'
                     } else {
                         $hint = "Build it from source with: python scripts/build-engine.py $Engine"
                     }

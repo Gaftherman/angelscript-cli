@@ -233,7 +233,7 @@ if [ -z "$archive" ]; then
         if [ -z "$asset" ] || ! download "$base/$asset" "$work/$asset" 2>/dev/null; then
             wanted="AngelScript ${engine:-releases}"
             if [ "$jit" = yes ]; then
-                fail "No prebuilt build of $wanted with the JIT for $os $arch in this release. Build it from source with: python scripts/build-engine.py <version> --jit (the JIT needs AngelScript 2.37 or later and a 64-bit system)."
+                fail "No prebuilt build of $wanted with the JIT for $os $arch in this release. Build it from source with: python scripts/build-engine.py <version> --jit (the JIT needs AngelScript 2.33 or later and a 64-bit system)."
             fi
             fail "No prebuilt build for AngelScript $engine. Build it from source with: python scripts/build-engine.py $engine"
         fi

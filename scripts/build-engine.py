@@ -6,7 +6,7 @@
   python scripts/build-engine.py --list
 The bundled release (the current one) builds as it is. Any other release is downloaded from angelcode.com, checked
 against the SHA-256 pinned in angelscript-engine (external/angelscript-engine, or ANGELSCRIPT_ENGINE_DIR) and patched
-there. --jit adds the angelscript-jit compiler (AngelScript 2.37 and later, 64-bit x86 or arm64).
+there. --jit adds the angelscript-jit compiler (AngelScript 2.33 and later, 64-bit x86 or arm64).
 The result is copied to <prefix>/bin/angelscript-<version>[-jit], next to a .json file that says what the build
 supports; the default angelscript command is left alone.
 """
@@ -70,8 +70,8 @@ def main():
         parser.error("pass a version or --list")
     if not shutil.which("cmake"):
         sys.exit("cmake is required")
-    if args.jit and tuple(int(part) for part in re.findall(r"\d+", version)[:3]) < (2, 37, 0):
-        sys.exit(f"--jit needs AngelScript 2.37.0 or later (the JIT uses the asIJITCompilerV2 interface); {version} has none")
+    if args.jit and tuple(int(part) for part in re.findall(r"\d+", version)[:3]) < (2, 33, 0):
+        sys.exit(f"--jit needs AngelScript 2.33.0 or later; {version} is older")
     work = Path(args.work).resolve()
     if version == bundled:
         root = BUNDLED_SDK

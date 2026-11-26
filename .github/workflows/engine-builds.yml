@@ -1,6 +1,6 @@
 name: Engine builds
 
-# Builds the CLI against every AngelScript release it supports (and, from 2.37, with the JIT), on every target, and
+# Builds the CLI against every AngelScript release it supports (and, from 2.33, with the JIT), on every target, and
 # attaches the results to a published release. This workflow never blocks CI or a release: the base assets are
 # already out when it runs, and a failed job only leaves that build out of the release and the setup program.
 # The matrix comes from scripts/plan-engine-builds.py. Run it by hand for an existing release with:

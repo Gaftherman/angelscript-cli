@@ -27,6 +27,12 @@ public:
     /** @brief Returns the provider name for the CLI version output. */
     const char* Name() override;
 
+    /** @brief Writes `<base>.c` and `<base>.externs` for the module. */
+    bool ExportModule(asIScriptModule& module, std::string_view base) override;
+
+    /** @brief Loads `<base>.dll|.so|.dylib` and `<base>.externs`; returns the number of installed functions. */
+    std::size_t LoadAot(asIScriptModule& module, std::string_view base) override;
+
 private:
     std::unique_ptr<angelsea::Jit> jit_;
 };

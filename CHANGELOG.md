@@ -4,6 +4,11 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+
+- JIT builds from AngelScript 2.33 (before: 2.37) through the version 1 JIT interface of angelscript-jit; the installers, the engine build plan and CMake gate on 2.33. The test suite passes with the JIT on 2.33.0 (25 tests) and 2.36.1 (26 tests).
+- `--aot-export BASE` writes `BASE.c` and `BASE.externs` for the script (the C that the JIT would compile, for ahead-of-time compilation with clang or gcc), and `--aot BASE` loads the shared library built from it, so a program starts with native code and no JIT compile. Builds with the angelsea JIT only; the example in the README shows the compile step. A library built for another AngelScript release or from another version of the script is skipped, not trusted.
+
 ## [1.2.2] - 2026-11-26
 
 ### Fixed

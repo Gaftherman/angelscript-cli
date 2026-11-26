@@ -11,8 +11,8 @@ import json
 
 # Newest first. The first one is the bundled release (external/angelscript); the others are patched by angelscript-engine.
 RELEASES = ["2.39.0", "2.38.0", "2.37.0", "2.36.1", "2.35.1", "2.33.0", "2.30.2"]
-# The JIT needs the asIJITCompilerV2 interface, which first shipped in 2.37.
-JIT_FROM = (2, 37, 0)
+# The JIT runs through asIJITCompilerV2 from 2.37 and through the version 1 interface (asIJITCompiler) from 2.33.
+JIT_FROM = (2, 33, 0)
 TARGETS = [
     {"runner": "windows-latest", "os": "windows", "arch": "x64", "msvc": "x64", "toolchain": "", "jit": True},
     {"runner": "windows-latest", "os": "windows", "arch": "x86", "msvc": "amd64_x86", "toolchain": "", "jit": False},

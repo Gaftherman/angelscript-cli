@@ -16,6 +16,8 @@ struct ScriptOptions
     std::optional<int> dapPort;
     bool checkOnly = false;
     bool noJit = false;
+    std::string_view aotExport;
+    std::string_view aotLoad;
 };
 
 /** @brief Maps a subcommand name to its handler and script requirement. */

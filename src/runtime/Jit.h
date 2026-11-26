@@ -1,6 +1,7 @@
 #pragma once
 
 #include <angelscript.h>
+#include <cstddef>
 #include <memory>
 #include <string_view>
 
@@ -18,6 +19,18 @@ public:
 
     /** @brief Returns the provider name for the CLI version output. */
     virtual const char* Name() = 0;
+
+    /** @brief Writes the C source of a module for ahead-of-time compilation; false when unsupported. */
+    virtual bool ExportModule(asIScriptModule&, std::string_view)
+    {
+        return false;
+    }
+
+    /** @brief Installs a compiled ahead-of-time library and returns how many functions it provided. */
+    virtual std::size_t LoadAot(asIScriptModule&, std::string_view)
+    {
+        return 0;
+    }
 };
 
 /** @brief Represents the interpreter-only build of the CLI. */
