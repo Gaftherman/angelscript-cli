@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-11-26
+
+### Fixed
+
+- `scripts/install.sh` asked for the x64 build on a 32-bit system running under a 64-bit kernel, because it read the architecture from `uname -m`. It now detects a 32-bit userland, and `--arch x64|x86|arm64` (or `ANGELSCRIPT_CLI_ARCH`) chooses the build by hand. The offline installer test of the Linux x86 CI job failed for this reason.
+
 ## [1.2.1] - 2026-11-26
 
 ### Fixed

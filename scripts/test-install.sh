@@ -132,6 +132,9 @@ done
 # One release is installed at a time: --engine and --jit pick which prebuilt build replaces the installed one. A fake
 # curl serves a release that lists a plain build, two engine builds and two JIT builds, and logs what was requested.
 suffix=${asset#angelscript-cli-$expected_version-}
+# The archive under test can be for another architecture than the runner (a 32-bit build on an x64 host).
+target_arch=${suffix#*-}
+target_arch=${target_arch%.tar.gz}
 serve=$work/serve
 mkdir -p "$serve" "$work/fake"
 : > "$serve/SHA256SUMS"
@@ -153,7 +156,7 @@ chmod +x "$work/fake/curl"
 install_with() {
     : > "$work/curl.log"
     TEST_SERVE=$serve TEST_CURL_LOG=$work/curl.log PATH="$work/fake:$PATH" \
-        "$test_shell" "$installer" --prefix "$prefix" --version "$expected_version" --no-modify-path "$@" > "$work/install.out" 2>&1
+        "$test_shell" "$installer" --prefix "$prefix" --version "$expected_version" --arch "$target_arch" --no-modify-path "$@" > "$work/install.out" 2>&1
 }
 picked() { grep -v '^SHA256SUMS$' "$work/curl.log" | tail -n 1; }
 install_with --engine 2.38.0 || fail "--engine 2.38.0 failed: $(cat "$work/install.out")"

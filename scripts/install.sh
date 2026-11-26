@@ -10,6 +10,7 @@ version=latest
 engine=${ANGELSCRIPT_ENGINE_VERSION-}
 jit=${ANGELSCRIPT_CLI_JIT:+yes}
 jit=${jit:-no}
+arch=${ANGELSCRIPT_CLI_ARCH-}
 archive=
 checksums=
 prefix=$HOME/.local
@@ -17,11 +18,12 @@ modify_path=yes
 uninstall=no
 while [ "$#" -gt 0 ]; do
     case $1 in
-        --version|--engine|--archive|--checksums|--prefix)
+        --version|--engine|--arch|--archive|--checksums|--prefix)
             if [ "$#" -lt 2 ] || [ -z "$2" ]; then fail "$1 requires a value"; fi
             case $1 in
                 --version) version=$2 ;;
                 --engine) engine=$2 ;;
+                --arch) arch=$2 ;;
                 --archive) archive=$2 ;;
                 --checksums) checksums=$2 ;;
                 --prefix) prefix=$2 ;;
@@ -146,11 +148,18 @@ case "$(uname -s)" in
     Darwin) os=macos ;;
     *) fail 'This installer supports Linux and macOS.' ;;
 esac
-case "$(uname -m)" in
-    x86_64) arch=x64 ;;
-    i386|i486|i586|i686) arch=x86 ;;
-    aarch64|arm64) arch=arm64 ;;
-    *) fail 'This installer supports x64, x86 and arm64.' ;;
+case $arch in
+    x64|x86|arm64) ;;
+    '')
+        case "$(uname -m)" in
+            x86_64) arch=x64 ;;
+            i386|i486|i586|i686) arch=x86 ;;
+            aarch64|arm64) arch=arm64 ;;
+            *) fail 'This installer supports x64, x86 and arm64.' ;;
+        esac
+        # A 32-bit userland on a 64-bit kernel reports x86_64 but cannot run the x64 build.
+        if [ "$arch" = x64 ] && [ "$os" = linux ] && [ "$(getconf LONG_BIT 2>/dev/null || echo 64)" = 32 ]; then arch=x86; fi ;;
+    *) fail '--arch must be x64, x86 or arm64.' ;;
 esac
 case $version in
     latest) ;;

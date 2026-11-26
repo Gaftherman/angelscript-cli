@@ -59,7 +59,7 @@ Use `linux-arm64` on ARM and `linux-x86` on 32-bit x86. Remove it with `sudo apt
 $ curl -fsSL https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.sh | sh
 ~~~
 
-Open a new terminal. Three names run the same program: `angelscript`, the short `asc` and the older `angelscript-cli`. To pick the CLI version, set `ANGELSCRIPT_CLI_VERSION` in PowerShell or run `sh -s -- --version 1.2.0`. To pick the AngelScript release, set `ANGELSCRIPT_ENGINE_VERSION` (or run `sh -s -- --engine 2.36.1`); add `ANGELSCRIPT_CLI_JIT=1` (or `--jit`) for the JIT build. The chosen build replaces the installed one. To install by hand, extract the archive from [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
+Open a new terminal. Three names run the same program: `angelscript`, the short `asc` and the older `angelscript-cli`. To pick the CLI version, set `ANGELSCRIPT_CLI_VERSION` in PowerShell or run `sh -s -- --version 1.2.0`. To pick the AngelScript release, set `ANGELSCRIPT_ENGINE_VERSION` (or run `sh -s -- --engine 2.36.1`); add `ANGELSCRIPT_CLI_JIT=1` (or `--jit`) for the JIT build. `--arch x64|x86|arm64` (or `ANGELSCRIPT_CLI_ARCH`) overrides the detected architecture. The chosen build replaces the installed one. To install by hand, extract the archive from [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
 
 ## Quick start
 
