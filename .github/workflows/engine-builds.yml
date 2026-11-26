@@ -14,29 +14,13 @@ on:
         description: Release tag to attach the builds to (empty builds without publishing)
         default: ''
         type: string
-  push:
-    branches: [main]
-    paths:
-      - CMakeLists.txt
-      - cmake/**
-      - scripts/build-engine.py
-      - scripts/plan-engine-builds.py
-      - scripts/package*
-      - packaging/**
-      - external/angelscript-engine
-      - external/angelscript-jit
-      - .github/workflows/engine-builds.yml
-  pull_request:
-    paths:
-      - CMakeLists.txt
-      - cmake/**
-      - scripts/build-engine.py
-      - scripts/plan-engine-builds.py
-      - external/angelscript-engine
-      - external/angelscript-jit
-      - .github/workflows/engine-builds.yml
 permissions:
   contents: read
+# Only a release (or a manual run) builds the whole matrix: pushes and pull requests do not, so a change to the
+# CMake files no longer rebuilds 61 jobs that the next release rebuilds anyway.
+concurrency:
+  group: engine-builds-${{ github.event.release.tag_name || inputs.tag || github.ref }}
+  cancel-in-progress: true
 jobs:
   plan:
     name: Plan the builds
@@ -109,6 +93,8 @@ jobs:
           # A hot function that indexes past the end of an array must raise the script exception the interpreter raises.
           $output = & $binary tests/fixtures/jit-hot.as 2>&1 | Out-String
           if ($LASTEXITCODE -ne 1 -or $output -notmatch 'Unhandled exception: Index out of bounds') { throw "Unexpected result from the JIT: $output" }
+          # The script exits with 1 on purpose; without this the step would end with that code and fail.
+          $global:LASTEXITCODE = 0
       - name: Package
         shell: pwsh
         run: |

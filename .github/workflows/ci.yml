@@ -1,9 +1,21 @@
 name: CI
 
+# Pushes build only main (a branch with a pull request is built once, by the pull request), and a change that only
+# touches documentation or images builds nothing. A newer run of the same branch cancels the older one.
 on:
   push:
-    branches: ['**']
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
     inputs:
       lsp_ref:
@@ -14,6 +26,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   build:

@@ -123,7 +123,7 @@ int Execute(const ExecutionRequest& request)
 #else
     if (request.dapPort)
     {
-        std::cerr << "Debugging needs a build against AngelScript 2.33.0 or later\n";
+        std::cerr << "Debugging needs a build against AngelScript 2.36.0 or later\n";
         return 2;
     }
 #endif

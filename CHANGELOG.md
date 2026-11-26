@@ -3,6 +3,21 @@
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
+## [1.2.1] - 2026-11-26
+
+### Fixed
+
+- The JIT builds of every release failed the smoke step of `engine-builds.yml`: the script it runs exits with 1 on purpose (an out of bounds `array` access), and that code ended the PowerShell step. The 49 builds without the JIT were not affected.
+- The message printed when `--dap` is used on a build that cannot debug named AngelScript 2.33.0, but the debugger needs 2.36.0.
+- JIT, in `angelscript-jit` 0.2.0: the aarch64 code generation abort that failed every Linux and macOS arm64 JIT job, a segmentation fault on a method call through a null handle, and faster script-to-script and interface calls.
+
+### Changed
+
+- CI builds only `main` and pull requests, skips documentation-only changes and cancels superseded runs. Before, a branch with a pull request ran twice and a change to this file ran all 7 targets.
+- `engine-builds.yml` (61 jobs) runs only when a release is published or by hand. It no longer runs on every push and pull request that touches CMake files, and it cancels an older run of the same release.
+- `jit.yml` cancels superseded runs.
+
 ## [1.2.0] - 2026-11-25
 ### Added
 - The Windows setup installs one AngelScript release, like Python: one radio button per release (the newest is selected) that shows whether it has a JIT build and which add-ons it lacks, and a **Use the JIT compiler** checkbox under the releases that have one. Running the setup again replaces the installed release.
