@@ -15,6 +15,9 @@ All notable changes to this project are documented in this file. The format foll
 
 - `scripts/install.sh` asked for the x64 build on a 32-bit system running under a 64-bit kernel, because it read the architecture from `uname -m`. It now detects a 32-bit userland, and `--arch x64|x86|arm64` (or `ANGELSCRIPT_CLI_ARCH`) chooses the build by hand. The offline installer test of the Linux x86 CI job failed for this reason.
 
+---
+**Full Changelog**: https://github.com/Gaftherman/angelscript-cli/compare/v1.2.1...v1.2.2
+
 ## [1.2.1] - 2026-11-26
 
 ### Fixed
@@ -29,6 +32,9 @@ All notable changes to this project are documented in this file. The format foll
 - `engine-builds.yml` (61 jobs) runs only when a release is published or by hand. It no longer runs on every push and pull request that touches CMake files, and it cancels an older run of the same release.
 - `jit.yml` cancels superseded runs.
 
+---
+**Full Changelog**: https://github.com/Gaftherman/angelscript-cli/compare/v1.2.0...v1.2.1
+
 ## [1.2.0] - 2026-11-25
 ### Added
 - The Windows setup installs one AngelScript release, like Python: one radio button per release (the newest is selected) that shows whether it has a JIT build and which add-ons it lacks, and a **Use the JIT compiler** checkbox under the releases that have one. Running the setup again replaces the installed release.
@@ -42,6 +48,9 @@ All notable changes to this project are documented in this file. The format foll
 - `--engine` in the install scripts replaces the installed build instead of adding `angelscript-<release>` next to it, and `build-engine.py` accepts the bundled release.
 ### Removed
 - The per-release `angelscript-<version>` commands of setup 1.1. The setup deletes them when it runs again.
+
+---
+**Full Changelog**: https://github.com/Gaftherman/angelscript-cli/compare/v1.1.0...v1.2.0
 
 ## [1.1.0] - 2026-11-25
 
@@ -69,6 +78,9 @@ All notable changes to this project are documented in this file. The format foll
 - Engine releases without native calls on arm64 (2.33 and earlier, and 2.35 and 2.36 on macOS) build in the engine's portable mode; add-ons that have no portable registration are left out of those builds.
 - AngelScript 2.35.1 builds with Clang (macOS, Linux with clang); the extracted copy takes the Clang branch that 2.36.0 added to `WRAP_MFN_PR`.
 - AngelScript 2.22.0 to 2.22.2, 2.23.0, 2.26.0 and 2.26.1 no longer return wrong float results on Linux x64: their call-convention source is taken from the next point release.
+
+---
+**Full Changelog**: https://github.com/Gaftherman/angelscript-cli/compare/v1.0.0...v1.1.0
 
 ## [1.0.0] - 2026-11-24
 
