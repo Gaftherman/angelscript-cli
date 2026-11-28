@@ -6,7 +6,7 @@ Gracias por ayudar. Se agradecen los informes de errores, las correcciones, la d
 
 ## Informar de un problema
 
-Abre una [incidencia](https://github.com/Gaftherman/angelscript-cli/issues) con la versión que usas, tu sistema operativo, los pasos para reproducirlo y la salida que viste. Lo que más ayuda es un script de pocas líneas que reproduzca el problema.
+Abre una [incidencia](https://github.com/angelscript-tools/angelscript-cli/issues) con la versión que usas, tu sistema operativo, los pasos para reproducirlo y la salida que viste. Lo que más ayuda es un script de pocas líneas que reproduzca el problema.
 
 ## Proponer un cambio
 
@@ -20,7 +20,7 @@ Abre una [incidencia](https://github.com/Gaftherman/angelscript-cli/issues) con 
 Usa un compilador C++20, CMake 3.21+ y Ninja. Elige **windows-x64**, **windows-x86**, **linux-x64**, **linux-x86** (necesita `g++-multilib`), **linux-arm64** o **macos**:
 
 ~~~sh
-git clone https://github.com/Gaftherman/angelscript-cli.git
+git clone https://github.com/angelscript-tools/angelscript-cli.git
 cd angelscript-cli
 git submodule update --init
 cmake --preset windows-x64
@@ -28,7 +28,7 @@ cmake --build --preset windows-x64
 ctest --preset windows-x64
 ~~~
 
-Los parches del SDK, los hashes SHA-256 y la matriz de motores viven en [angelscript-engine](https://github.com/Gaftherman/angelscript-engine), que se clona en `external/angelscript-engine`. Para comprobar otra versión de AngelScript, ejecuta `python scripts/build-engine.py X.Y.Z`; si la versión es nueva, fíjala primero allí con `python external/angelscript-engine/scripts/prepare-sdk.py X.Y.Z --out build/sdk --pin`. La versión incluida (`external/angelscript`, la actual) se compila tal cual y no necesita ese repositorio. El JIT es [angelscript-jit](https://github.com/Gaftherman/angelscript-jit), que se clona en `external/angelscript-jit`; `python scripts/build-engine.py X.Y.Z --jit` compila una versión con él, y `scripts/plan-engine-builds.py` lista las versiones y destinos que compila el workflow de engines.
+Los parches del SDK, los hashes SHA-256 y la matriz de motores viven en [angelscript-engine](https://github.com/angelscript-tools/angelscript-engine), que se clona en `external/angelscript-engine`. Para comprobar otra versión de AngelScript, ejecuta `python scripts/build-engine.py X.Y.Z`; si la versión es nueva, fíjala primero allí con `python external/angelscript-engine/scripts/prepare-sdk.py X.Y.Z --out build/sdk --pin`. La versión incluida (`external/angelscript`, la actual) se compila tal cual y no necesita ese repositorio. El JIT es [angelscript-jit](https://github.com/angelscript-tools/angelscript-jit), que se clona en `external/angelscript-jit`; `python scripts/build-engine.py X.Y.Z --jit` compila una versión con él, y `scripts/plan-engine-builds.py` lista las versiones y destinos que compila el workflow de engines.
 
 ## Estilo
 
@@ -42,7 +42,7 @@ Al contribuir aceptas que tu trabajo se publique bajo la [licencia MIT](../LICEN
 
 | Proyecto | Uso |
 | --- | --- |
-| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | El núcleo del depurador |
-| [angelscript-debugger-example](https://github.com/Gaftherman/angelscript-debugger-example) | Una aplicación que muestra cómo usar el depurador |
-| [angelscript-cli](https://github.com/Gaftherman/angelscript-cli) | Ejecuta, comprueba y depura scripts desde la terminal |
-| [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp) | Soporte del editor para VS Code |
+| [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap) | El núcleo del depurador |
+| [angelscript-debugger-example](https://github.com/angelscript-tools/angelscript-debugger-example) | Una aplicación que muestra cómo usar el depurador |
+| [angelscript-cli](https://github.com/angelscript-tools/angelscript-cli) | Ejecuta, comprueba y depura scripts desde la terminal |
+| [angelscript-lsp](https://github.com/angelscript-tools/angelscript-lsp) | Soporte del editor para VS Code |

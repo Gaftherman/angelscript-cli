@@ -101,7 +101,7 @@ mkdir "$work/tools"
 cat > "$work/tools/curl" <<'SH'
 #!/bin/sh
 set -eu
-base=https://github.com/Gaftherman/angelscript-cli/releases/latest/download
+base=https://github.com/angelscript-tools/angelscript-cli/releases/latest/download
 case $2 in
     "$base/SHA256SUMS") cp "$TEST_CHECKSUMS" "$4" ;;
     "$base/$TEST_ASSET") cp "$TEST_ARCHIVE" "$4" ;;

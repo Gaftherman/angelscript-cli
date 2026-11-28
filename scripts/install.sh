@@ -190,7 +190,7 @@ trap cleanup 0
 trap 'exit 1' HUP INT TERM
 
 if [ -z "$archive" ]; then
-    base=https://github.com/Gaftherman/angelscript-cli/releases
+    base=https://github.com/angelscript-tools/angelscript-cli/releases
     if [ "$version" = latest ]; then
         base=$base/latest/download
     else

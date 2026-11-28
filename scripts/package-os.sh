@@ -56,7 +56,7 @@ Architecture: $deb_arch
 Maintainer: Gaftherman <noreply@users.noreply.github.com>
 Installed-Size: $size
 Depends: libc6, libstdc++6
-Homepage: https://github.com/Gaftherman/angelscript-cli
+Homepage: https://github.com/angelscript-tools/angelscript-cli
 Description: Run AngelScript files from the terminal
  The angelscript command, also available as asc and angelscript-cli, runs
  AngelScript scripts with files, sockets, strings and dates, and debugs them

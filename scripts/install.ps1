@@ -153,7 +153,7 @@ public static extern System.IntPtr SendMessageTimeout(
             $asset = [IO.Path]::GetFileName($zipPath)
             if (-not $Checksums) { Write-Output 'Local archive supplied without SHA256SUMS. Skipping checksum verification.' }
         } else {
-            $base = 'https://github.com/Gaftherman/angelscript-cli/releases'
+            $base = 'https://github.com/angelscript-tools/angelscript-cli/releases'
             if ($Version -eq 'latest') { $base += '/latest/download' } else { $base += "/download/v$Version" }
             if (-not $Checksums) {
                 $Checksums = Join-Path $work 'SHA256SUMS'

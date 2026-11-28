@@ -39,7 +39,7 @@ redistribute it freely, subject to the following restrictions:
 
 ## angelscript-dap
 
-https://github.com/Gaftherman/angelscript-dap
+https://github.com/angelscript-tools/angelscript-dap
 
 Debug Adapter Protocol core used by the `--dap` mode.
 
@@ -315,7 +315,7 @@ SOFTWARE.
 
 ## angelsea
 
-https://github.com/asumagic/angelsea (used through the fork https://github.com/Gaftherman/angelscript-jit)
+https://github.com/asumagic/angelsea (used through the fork https://github.com/angelscript-tools/angelscript-jit)
 
 Optional JIT compiler for AngelScript, built into the CLI only with `-DANGELSCRIPT_CLI_JIT=angelsea`.
 

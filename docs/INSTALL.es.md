@@ -4,7 +4,7 @@
 
 ## Windows
 
-Descarga `angelscript-cli-1.2.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo. En Windows de 32 bits usa `angelscript-cli-1.2.0-windows-x86-setup.exe`.
+Descarga `angelscript-cli-1.2.0-windows-x64-setup.exe` desde [Releases](https://github.com/angelscript-tools/angelscript-cli/releases/latest) y ejecútalo. En Windows de 32 bits usa `angelscript-cli-1.2.0-windows-x86-setup.exe`.
 
 1. Acepta la licencia.
 
@@ -30,7 +30,7 @@ Abre una terminal nueva y ejecuta `asc --version`. Para quitarlo, usa **Configur
 
 ## macOS
 
-Descarga `angelscript-cli-1.2.0-macos-arm64.pkg` (Apple silicon) o `angelscript-cli-1.2.0-macos-x64.pkg` (Intel) desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ábrelo. Se instala en `/usr/local/bin`. El paquete aún no está notarizado: si macOS lo bloquea, haz clic derecho y elige **Abrir**.
+Descarga `angelscript-cli-1.2.0-macos-arm64.pkg` (Apple silicon) o `angelscript-cli-1.2.0-macos-x64.pkg` (Intel) desde [Releases](https://github.com/angelscript-tools/angelscript-cli/releases/latest) y ábrelo. Se instala en `/usr/local/bin`. El paquete aún no está notarizado: si macOS lo bloquea, haz clic derecho y elige **Abrir**.
 
 ## Linux
 
@@ -43,11 +43,11 @@ Usa `linux-arm64` en ARM y `linux-x86` en x86 de 32 bits. Para quitarlo, ejecuta
 ## Scripts, sin permisos de administrador
 
 ```powershell
-irm https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/angelscript-tools/angelscript-cli/main/scripts/install.ps1 | iex
 ```
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/angelscript-tools/angelscript-cli/main/scripts/install.sh | sh
 ```
 
 Abre una terminal nueva. Tres nombres ejecutan el mismo programa: `angelscript`, el corto `asc` y el anterior `angelscript-cli`.
@@ -59,4 +59,4 @@ Abre una terminal nueva. Tres nombres ejecutan el mismo programa: `angelscript`,
 | La compilación con JIT | `ANGELSCRIPT_CLI_JIT=1` | `--jit` |
 | La arquitectura (`x64`, `x86`, `arm64`) | `ANGELSCRIPT_CLI_ARCH` | `--arch` |
 
-La compilación elegida reemplaza a la instalada. Para instalar a mano, extrae el archivo de [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest).
+La compilación elegida reemplaza a la instalada. Para instalar a mano, extrae el archivo de [Releases](https://github.com/angelscript-tools/angelscript-cli/releases/latest).

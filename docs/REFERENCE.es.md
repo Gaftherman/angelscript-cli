@@ -40,7 +40,7 @@ Incluido: cadenas y utilidades de cadenas, arrays, diccionarios, matemáticas, a
 
 ### Soporte en el editor
 
-[`examples/angelscript-cli.as.predefined`](../examples/angelscript-cli.as.predefined) describe cada tipo y función que registra la CLI (`string`, `array`, `dictionary`, `file`, `datetime`, `filesystem`, `TcpSocket`, `println`, `getArgs` y más), así que [AngelLSP](https://github.com/Gaftherman/angelscript-lsp) revisa tus scripts sin marcar esos nombres como desconocidos. [`examples/angelscript.rules.json`](../examples/angelscript.rules.json) declara la versión del motor. Regenera el stub para otra compilación con `angelscript --dump-predefined > mi.as.predefined`.
+[`examples/angelscript-cli.as.predefined`](../examples/angelscript-cli.as.predefined) describe cada tipo y función que registra la CLI (`string`, `array`, `dictionary`, `file`, `datetime`, `filesystem`, `TcpSocket`, `println`, `getArgs` y más), así que [AngelLSP](https://github.com/angelscript-tools/angelscript-lsp) revisa tus scripts sin marcar esos nombres como desconocidos. [`examples/angelscript.rules.json`](../examples/angelscript.rules.json) declara la versión del motor. Regenera el stub para otra compilación con `angelscript --dump-predefined > mi.as.predefined`.
 
 ## Depurar un script
 
@@ -57,6 +57,6 @@ Añade esto a `configurations` en `.vscode/launch.json`, pon un punto de interru
 { "type": "angelscript", "request": "attach", "name": "Attach to asc", "host": "127.0.0.1", "port": 9002, "protocol": "dap" }
 ```
 
-<p align="center"><img src="https://raw.githubusercontent.com/Gaftherman/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code conectado a un script que asc ejecuta en el Símbolo del sistema, avanzando paso a paso por addBonus" width="720"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/angelscript-tools/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code conectado a un script que asc ejecuta en el Símbolo del sistema, avanzando paso a paso por addBonus" width="720"></p>
 
-El depurador necesita AngelScript 2.36.0 o posterior (consulta [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md)) y viene de [angelscript-dap](https://github.com/Gaftherman/angelscript-dap). `--no-jit` y las sesiones del depurador usan el intérprete.
+El depurador necesita AngelScript 2.36.0 o posterior (consulta [ENGINE_VERSIONS.md](https://github.com/angelscript-tools/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md)) y viene de [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap). `--no-jit` y las sesiones del depurador usan el intérprete.

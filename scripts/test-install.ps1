@@ -80,7 +80,7 @@ try {
     Assert-Path $original
     & {
         function Invoke-WebRequest($Uri, $OutFile, [switch]$UseBasicParsing) {
-            $base = 'https://github.com/Gaftherman/angelscript-cli/releases/latest/download'
+            $base = 'https://github.com/angelscript-tools/angelscript-cli/releases/latest/download'
             if ($Uri -ceq "$base/SHA256SUMS") {
                 Copy-Item -LiteralPath $checksumFile -Destination $OutFile
             } elseif ($Uri -ceq "$base/$assetName") {

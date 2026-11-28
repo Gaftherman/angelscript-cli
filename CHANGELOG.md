@@ -16,7 +16,7 @@ All notable changes to this project are documented in this file. The format foll
 - `scripts/install.sh` asked for the x64 build on a 32-bit system running under a 64-bit kernel, because it read the architecture from `uname -m`. It now detects a 32-bit userland, and `--arch x64|x86|arm64` (or `ANGELSCRIPT_CLI_ARCH`) chooses the build by hand. The offline installer test of the Linux x86 CI job failed for this reason.
 
 ---
-**Full Changelog**: https://github.com/Gaftherman/angelscript-cli/compare/v1.2.1...v1.2.2
+**Full Changelog**: https://github.com/angelscript-tools/angelscript-cli/compare/v1.2.1...v1.2.2
 
 ## [1.2.1] - 2026-11-26
 
@@ -33,7 +33,7 @@ All notable changes to this project are documented in this file. The format foll
 - `jit.yml` cancels superseded runs.
 
 ---
-**Full Changelog**: https://github.com/Gaftherman/angelscript-cli/compare/v1.2.0...v1.2.1
+**Full Changelog**: https://github.com/angelscript-tools/angelscript-cli/compare/v1.2.0...v1.2.1
 
 ## [1.2.0] - 2026-11-25
 ### Added
@@ -43,20 +43,20 @@ All notable changes to this project are documented in this file. The format foll
 - `engine-info.json` in each build directory (release, JIT, add-ons) and `scripts/plan-engine-builds.py`, the list of releases and targets the engine workflow builds.
 - A `jit-hot` test: a hot function that indexes past the end of an array must raise the same exception, line and call stack with and without the JIT.
 ### Changed
-- The JIT is [angelscript-jit](https://github.com/Gaftherman/angelscript-jit), a fork of angelsea (`external/angelscript-jit`, replacing `external/angelsea`). Upstream angelsea crashed on the `jit-hot` test: it dropped script exceptions raised by application functions.
+- The JIT is [angelscript-jit](https://github.com/angelscript-tools/angelscript-jit), a fork of angelsea (`external/angelscript-jit`, replacing `external/angelsea`). Upstream angelsea crashed on the `jit-hot` test: it dropped script exceptions raised by application functions.
 - The bundled (current) AngelScript release builds without `angelscript-engine`; the engine repository is only needed for older releases (`cmake/BundledAngelScript.cmake`).
 - `--engine` in the install scripts replaces the installed build instead of adding `angelscript-<release>` next to it, and `build-engine.py` accepts the bundled release.
 ### Removed
 - The per-release `angelscript-<version>` commands of setup 1.1. The setup deletes them when it runs again.
 
 ---
-**Full Changelog**: https://github.com/Gaftherman/angelscript-cli/compare/v1.1.0...v1.2.0
+**Full Changelog**: https://github.com/angelscript-tools/angelscript-cli/compare/v1.1.0...v1.2.0
 
 ## [1.1.0] - 2026-11-25
 
 ### Added
 
-- Build against official AngelScript releases from 2.20 to 2.39 (`scripts/build-engine.py`) and publish a build for each supported engine with every release. [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md) lists what each version supports.
+- Build against official AngelScript releases from 2.20 to 2.39 (`scripts/build-engine.py`) and publish a build for each supported engine with every release. [ENGINE_VERSIONS.md](https://github.com/angelscript-tools/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md) lists what each version supports.
 - Optional [angelsea](https://github.com/asumagic/angelsea) JIT: build with `-DANGELSCRIPT_CLI_JIT=angelsea` (AngelScript 2.37 or later, x86-64 or arm64). `angelscript --version` reports `jit: angelsea`; `--no-jit` and debugger sessions keep the interpreter. The `JIT` workflow builds and tests it without blocking CI.
 - The Windows setup program has one checkbox per AngelScript release, so each `angelscript-<version>` can be installed on its own.
 - Windows x86 and Linux x86 builds: archives, a Windows setup program and a Debian package for each, plus an engine build for every supported release.
@@ -64,8 +64,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ### Changed
 
-- The engine fixes, SHA-256 pins and version matrix moved to [angelscript-engine](https://github.com/Gaftherman/angelscript-engine) (`external/angelscript-engine`). The engine builds run in their own workflow (`engine-builds.yml`) after a release is published and attach their assets to it, so a failing engine build no longer blocks the release.
-- The debugger core now comes from the [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) submodule (`external/angelscript-dap`).
+- The engine fixes, SHA-256 pins and version matrix moved to [angelscript-engine](https://github.com/angelscript-tools/angelscript-engine) (`external/angelscript-engine`). The engine builds run in their own workflow (`engine-builds.yml`) after a release is published and attach their assets to it, so a failing engine build no longer blocks the release.
+- The debugger core now comes from the [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap) submodule (`external/angelscript-dap`).
 - Spanish README and third-party notices moved to `docs/`.
 
 ### Fixed
@@ -80,7 +80,7 @@ All notable changes to this project are documented in this file. The format foll
 - AngelScript 2.22.0 to 2.22.2, 2.23.0, 2.26.0 and 2.26.1 no longer return wrong float results on Linux x64: their call-convention source is taken from the next point release.
 
 ---
-**Full Changelog**: https://github.com/Gaftherman/angelscript-cli/compare/v1.0.0...v1.1.0
+**Full Changelog**: https://github.com/angelscript-tools/angelscript-cli/compare/v1.0.0...v1.1.0
 
 ## [1.0.0] - 2026-11-24
 
@@ -100,11 +100,11 @@ First release.
 - The CLI builds against official AngelScript releases from angelcode.com, not only the bundled 2.39.0. `scripts/engine-matrix.py` downloads each release, checks its pinned SHA-256, builds and tests it; three one-line compatibility fixes are applied to the extracted copy only. `docs/ENGINE_VERSIONS.md` lists all 43 releases from 2.20.0, and all of them build: full support from 2.36.0 with the debugger, run and check for the releases that pass every test, and the rest partial with their causes.
 - The installers take `--engine X.Y.Z` (`-Engine` on Windows, or `ANGELSCRIPT_ENGINE_VERSION`) to install a build against another release side by side as `angelscript-X.Y.Z`. `scripts/build-engine.py` builds any official release from source. CI builds and packages 2.38.0, 2.37.0, 2.36.1, 2.35.1, 2.33.0 and 2.30.2 for every platform on main, and the release attaches them. The Windows setup program offers those builds on a components page, built from the CI artifacts (`package-installer.ps1 -EngineDir`).
 - `examples/angelscript-cli.as.predefined` and `examples/angelscript.rules.json` make AngelLSP check the examples with no unknown names. The README adds an animated terminal capture and a plain Command Prompt capture.
-- The Debug Adapter Protocol core comes from the [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) repository (a submodule), shared with the example project and the asdebugger Sven Co-op plugin. The assembly sources of the arm64 call convention no longer receive the C++ compatibility flags, and engine releases before 2.39 get their global asm labels prefixed in the extracted copy so they build on Clang.
+- The Debug Adapter Protocol core comes from the [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap) repository (a submodule), shared with the example project and the asdebugger Sven Co-op plugin. The assembly sources of the arm64 call convention no longer receive the C++ compatibility flags, and engine releases before 2.39 get their global asm labels prefixed in the extracted copy so they build on Clang.
 - 2.22.0 to 2.22.2, 2.23.0, 2.26.0 and 2.26.1 return wrong float results or crash on Linux x64 in their own `as_callfunc_x64_gcc.cpp`. The extracted copy takes that file (and `as_callfunc.h` for 2.22) from the next point release, so 2.23.0, 2.26.0 and 2.26.1 now pass every test; the 2.22 releases and the rest of the partial list (2.20.x, 2.21.0, 2.31.0) stay documented with their causes.
 - `CONTRIBUTING.md` with a Spanish version, a Support section and a list of related projects in the READMEs. The Spanish README, the third-party notices and the roadmap live in `docs/`.
 - `angelscript --dump-predefined` prints every type and function a script sees as an `.as.predefined` stub, for the engine the binary was built with (2.39.0 or later).
 
-[Unreleased]: https://github.com/Gaftherman/angelscript-cli/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/Gaftherman/angelscript-cli/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/Gaftherman/angelscript-cli/releases/tag/v1.0.0
+[Unreleased]: https://github.com/angelscript-tools/angelscript-cli/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/angelscript-tools/angelscript-cli/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/angelscript-tools/angelscript-cli/releases/tag/v1.0.0

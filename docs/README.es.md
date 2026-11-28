@@ -10,10 +10,10 @@ Ejecuta, comprueba y depura scripts de AngelScript desde la terminal, como ejecu
 
 | Sistema | Comando |
 | --- | --- |
-| Windows | Descarga `angelscript-cli-1.2.0-windows-x64-setup.exe` desde [Releases](https://github.com/Gaftherman/angelscript-cli/releases/latest) y ejecútalo. |
+| Windows | Descarga `angelscript-cli-1.2.0-windows-x64-setup.exe` desde [Releases](https://github.com/angelscript-tools/angelscript-cli/releases/latest) y ejecútalo. |
 | macOS | Descarga `angelscript-cli-1.2.0-macos-arm64.pkg` (Apple silicon) o `-macos-x64.pkg` (Intel) y ábrelo. |
 | Linux | `sudo apt install ./angelscript-cli-1.2.0-linux-x64.deb` |
-| Cualquiera, sin administrador | `irm https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.ps1 \| iex` o `curl -fsSL https://raw.githubusercontent.com/Gaftherman/angelscript-cli/main/scripts/install.sh \| sh` |
+| Cualquiera, sin administrador | `irm https://raw.githubusercontent.com/angelscript-tools/angelscript-cli/main/scripts/install.ps1 \| iex` o `curl -fsSL https://raw.githubusercontent.com/angelscript-tools/angelscript-cli/main/scripts/install.sh \| sh` |
 
 Abre una terminal nueva y ejecuta `asc --version`. Los pasos del instalador, las otras arquitecturas y sus opciones están en [INSTALL.es.md](INSTALL.es.md).
 
@@ -44,14 +44,14 @@ Cada script está en [`examples/`](../examples). `asc --check script.as` compila
 
 <p align="center"><img src="images/vscode-run.gif" alt="Escribiendo asc files.as en la terminal de VS Code" width="720"></p>
 
-<p align="center"><img src="https://raw.githubusercontent.com/Gaftherman/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code conectado a un script que asc ejecuta en el Símbolo del sistema, avanzando paso a paso por addBonus" width="720"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/angelscript-tools/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code conectado a un script que asc ejecuta en el Símbolo del sistema, avanzando paso a paso por addBonus" width="720"></p>
 
 El stub del editor, la configuración de depuración y la lista de comandos están en [REFERENCE.es.md](REFERENCE.es.md).
 
 ## Compilar desde el código fuente
 
 ```sh
-git clone https://github.com/Gaftherman/angelscript-cli.git
+git clone https://github.com/angelscript-tools/angelscript-cli.git
 cd angelscript-cli
 git submodule update --init
 cmake --preset windows-x64
@@ -66,7 +66,7 @@ Preajustes: **windows-x64**, **windows-x86**, **linux-x64**, **linux-x86**, **li
 - [Instalación](INSTALL.es.md) — el instalador de Windows paso a paso, paquetes y scripts.
 - [Referencia](REFERENCE.es.md) — comandos, códigos de salida, VS Code, depuración y soporte del editor.
 - [Compilar](BUILDING.es.md) — compilar desde el código, JIT, AOT y otras versiones de AngelScript.
-- [Versiones del motor](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md) — qué admite cada versión.
+- [Versiones del motor](https://github.com/angelscript-tools/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md) — qué admite cada versión.
 - [Grabar las capturas](DEMOS.md) (en inglés) — cómo se generan las imágenes.
 - [CHANGELOG.md](../CHANGELOG.md) — historial de versiones.
 
@@ -79,22 +79,22 @@ El plan y su comparación con los otros JIT de AngelScript están en [ROADMAP.md
 
 ## Soporte
 
-Abre una [incidencia](https://github.com/Gaftherman/angelscript-cli/issues) para el programa de línea de comandos, los instaladores y las versiones del motor. Incluye la salida de `angelscript --version`, tu sistema operativo y un script corto que reproduzca el problema. Los problemas del depurador van a [angelscript-dap](https://github.com/Gaftherman/angelscript-dap/issues) y los del editor a [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp/issues). Para ayudar, lee [CONTRIBUTING.es.md](CONTRIBUTING.es.md).
+Abre una [incidencia](https://github.com/angelscript-tools/angelscript-cli/issues) para el programa de línea de comandos, los instaladores y las versiones del motor. Incluye la salida de `angelscript --version`, tu sistema operativo y un script corto que reproduzca el problema. Los problemas del depurador van a [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap/issues) y los del editor a [angelscript-lsp](https://github.com/angelscript-tools/angelscript-lsp/issues). Para ayudar, lee [CONTRIBUTING.es.md](CONTRIBUTING.es.md).
 
 ## Relacionados
 
 | Proyecto | Uso |
 | --- | --- |
-| [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp) | Soporte del editor para VS Code |
-| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | El núcleo del depurador detrás de `--dap-port` |
-| [angelscript-debugger-example](https://github.com/Gaftherman/angelscript-debugger-example) | Una aplicación que muestra cómo usar el depurador |
-| [angelscript-jit](https://github.com/Gaftherman/angelscript-jit) | Compilador JIT opcional |
-| [angelscript-engine](https://github.com/Gaftherman/angelscript-engine) | Soporte de versiones antiguas de AngelScript |
+| [angelscript-lsp](https://github.com/angelscript-tools/angelscript-lsp) | Soporte del editor para VS Code |
+| [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap) | El núcleo del depurador detrás de `--dap-port` |
+| [angelscript-debugger-example](https://github.com/angelscript-tools/angelscript-debugger-example) | Una aplicación que muestra cómo usar el depurador |
+| [angelscript-jit](https://github.com/angelscript-tools/angelscript-jit) | Compilador JIT opcional |
+| [angelscript-engine](https://github.com/angelscript-tools/angelscript-engine) | Soporte de versiones antiguas de AngelScript |
 
 ### Proyectos similares
 
 - [sashi0034/angel-lsp](https://github.com/sashi0034/angel-lsp): otro servidor de lenguaje de AngelScript, con stubs de aplicaciones.
-- [asumagic/angelsea](https://github.com/asumagic/angelsea): el JIT del que [angelscript-jit](https://github.com/Gaftherman/angelscript-jit) es fork.
+- [asumagic/angelsea](https://github.com/asumagic/angelsea): el JIT del que [angelscript-jit](https://github.com/angelscript-tools/angelscript-jit) es fork.
 
 ## Créditos
 
@@ -103,7 +103,7 @@ AngelScript CLI se apoya en el trabajo de estos proyectos. Sus licencias se repr
 | Proyecto | Licencia | Uso |
 | --- | --- | --- |
 | [AngelScript](https://github.com/anjo76/angelscript) de Andreas Jönsson | zlib | El lenguaje y su runtime |
-| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | MIT | Núcleo del Debug Adapter Protocol |
+| [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap) | MIT | Núcleo del Debug Adapter Protocol |
 | [cppdap](https://github.com/google/cppdap) | Apache-2.0 | Biblioteca del Debug Adapter Protocol |
 | [nlohmann/json](https://github.com/nlohmann/json) | MIT | JSON, a través de cppdap |
 

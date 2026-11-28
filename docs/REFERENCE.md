@@ -40,7 +40,7 @@ Built in: strings and string utilities, arrays, dictionaries, math, files, files
 
 ### Editor support
 
-[`examples/angelscript-cli.as.predefined`](../examples/angelscript-cli.as.predefined) describes every type and function the CLI registers (`string`, `array`, `dictionary`, `file`, `datetime`, `filesystem`, `TcpSocket`, `println`, `getArgs` and more), so [AngelLSP](https://github.com/Gaftherman/angelscript-lsp) checks your scripts without reporting those names as unknown. [`examples/angelscript.rules.json`](../examples/angelscript.rules.json) declares the engine version. Regenerate the stub for another build with `angelscript --dump-predefined > my.as.predefined`.
+[`examples/angelscript-cli.as.predefined`](../examples/angelscript-cli.as.predefined) describes every type and function the CLI registers (`string`, `array`, `dictionary`, `file`, `datetime`, `filesystem`, `TcpSocket`, `println`, `getArgs` and more), so [AngelLSP](https://github.com/angelscript-tools/angelscript-lsp) checks your scripts without reporting those names as unknown. [`examples/angelscript.rules.json`](../examples/angelscript.rules.json) declares the engine version. Regenerate the stub for another build with `angelscript --dump-predefined > my.as.predefined`.
 
 ## Debug a script
 
@@ -57,6 +57,6 @@ Add this to `configurations` in `.vscode/launch.json`, set a breakpoint and pres
 { "type": "angelscript", "request": "attach", "name": "Attach to asc", "host": "127.0.0.1", "port": 9002, "protocol": "dap" }
 ```
 
-<p align="center"><img src="https://raw.githubusercontent.com/Gaftherman/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code attached to a script that asc runs in Command Prompt, stepping through addBonus" width="720"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/angelscript-tools/angelscript-dap/main/docs/images/debugger-cli.gif" alt="VS Code attached to a script that asc runs in Command Prompt, stepping through addBonus" width="720"></p>
 
-The debugger needs AngelScript 2.36.0 or later (see [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md)) and comes from [angelscript-dap](https://github.com/Gaftherman/angelscript-dap). `--no-jit` and debugger sessions use the interpreter.
+The debugger needs AngelScript 2.36.0 or later (see [ENGINE_VERSIONS.md](https://github.com/angelscript-tools/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md)) and comes from [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap). `--no-jit` and debugger sessions use the interpreter.

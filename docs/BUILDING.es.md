@@ -5,7 +5,7 @@
 Usa un compilador C++20, CMake 3.21+ y Ninja. Usa una terminal de desarrollador x64 para MSVC. Node.js habilita la prueba de DAP. Usa una terminal de desarrollador x86 (`amd64_x86`) para **windows-x86** e instala `g++-multilib` para **linux-x86**. Elige **windows-x64**, **windows-x86**, **linux-x64**, **linux-x86**, **linux-arm64** o **macos**.
 
 ```sh
-git clone https://github.com/Gaftherman/angelscript-cli.git
+git clone https://github.com/angelscript-tools/angelscript-cli.git
 cd angelscript-cli
 git submodule update --init
 cmake --preset windows-x64
@@ -15,7 +15,7 @@ ctest --preset windows-x64
 
 ## JIT (opcional)
 
-El intérprete es lo predeterminado. El JIT es [angelscript-jit](https://github.com/Gaftherman/angelscript-jit), una bifurcación de [angelsea](https://github.com/asumagic/angelsea) que se mantiene funcionando con la versión actual de AngelScript. Necesita AngelScript 2.33 o posterior y un destino de 64 bits (Windows o Linux x86-64) o arm64 (experimental). Descarga sus dependencias y activa la opción:
+El intérprete es lo predeterminado. El JIT es [angelscript-jit](https://github.com/angelscript-tools/angelscript-jit), una bifurcación de [angelsea](https://github.com/asumagic/angelsea) que se mantiene funcionando con la versión actual de AngelScript. Necesita AngelScript 2.33 o posterior y un destino de 64 bits (Windows o Linux x86-64) o arm64 (experimental). Descarga sus dependencias y activa la opción:
 
 ```sh
 git submodule update --init external/angelscript-jit
@@ -39,11 +39,11 @@ La biblioteca solo sirve para la misma compilación de la CLI y el mismo script;
 
 ## Otras versiones de AngelScript
 
-La versión actual se compila tal cual. Las anteriores las descarga, verifica con un SHA-256 y parchea [angelscript-engine](https://github.com/Gaftherman/angelscript-engine) (`external/angelscript-engine`):
+La versión actual se compila tal cual. Las anteriores las descarga, verifica con un SHA-256 y parchea [angelscript-engine](https://github.com/angelscript-tools/angelscript-engine) (`external/angelscript-engine`):
 
 ```sh
 python scripts/build-engine.py 2.36.1
 python scripts/build-engine.py 2.39.0 --jit
 ```
 
-Cada release publica además una compilación por cada versión de AngelScript compatible (y una con JIT desde la 2.33), y el instalador de Windows las ofrece. [ENGINE_VERSIONS.md](https://github.com/Gaftherman/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md) indica qué admite cada una.
+Cada release publica además una compilación por cada versión de AngelScript compatible (y una con JIT desde la 2.33), y el instalador de Windows las ofrece. [ENGINE_VERSIONS.md](https://github.com/angelscript-tools/angelscript-engine/blob/main/docs/ENGINE_VERSIONS.md) indica qué admite cada una.

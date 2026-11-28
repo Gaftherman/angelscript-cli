@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/Gaftherman/angelscript-lsp/main/schemas/angelscript.rules.schema.json",
+  "$schema": "https://raw.githubusercontent.com/angelscript-tools/angelscript-lsp/main/schemas/angelscript.rules.schema.json",
   "name": "angelscript-cli",
   "engine": { "name": "angelscript-cli", "version": "2.39.0", "source": "official" },
   "noHandleTypes": ["string", "datetime"]

@@ -221,7 +221,7 @@ jobs:
           "ANGELSCRIPT_CLI_PATH=$(Join-Path $bin.FullName $env:BINARY)" >> $env:GITHUB_ENV
       - uses: actions/checkout@v4
         with:
-          repository: Gaftherman/angelscript-lsp
+          repository: angelscript-tools/angelscript-lsp
           ref: ${{ inputs.lsp_ref || 'main' }}
           path: extension
           persist-credentials: false
